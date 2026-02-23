@@ -1,0 +1,22 @@
+<svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle (Transparent) -->
+  <circle cx="250" cy="250" r="240" fill="white" stroke="#f58220" stroke-width="4"/>
+  
+  <!-- Emblem/Gear Placeholder (Simple Shield shape) -->
+  <path d="M250 100 L270 115 L270 145 L250 160 L230 145 L230 115 Z" fill="#800000" />
+  <circle cx="250" cy="130" r="15" fill="#ed1c24" stroke="white" stroke-width="2"/>
+  <path d="M245 125 L255 135 M255 125 L245 135" stroke="white" stroke-width="2"/>
+
+  <!-- CIET Text -->
+  <text x="250" y="210" font-family="Arial, Helvetica, sans-serif" font-size="95" font-weight="900" fill="#ed1c24" text-anchor="middle">CIET</text>
+  
+  <!-- Chalapathi Text -->
+  <text x="250" y="290" font-family="'Arial Black', Gadget, sans-serif" font-size="65" font-weight="900" fill="#006eb6" text-anchor="middle">Chalapathi</text>
+  
+  <!-- Institute Text -->
+  <text x="250" y="330" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#006eb6" text-anchor="middle">Institute of Engineering &amp; Technology</text>
+  
+  <!-- Autonomous Box -->
+  <rect x="140" y="350" width="220" height="35" rx="5" fill="#66ad44"/>
+  <text x="250" y="375" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle" letter-spacing="2">AUTONOMOUS</text>
+</svg>

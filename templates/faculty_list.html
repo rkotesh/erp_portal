@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 d-flex justify-content-between align-items-center mb-4">
+            <h1>Faculty Directory</h1>
+            <button class="btn btn-primary">+ Add Faculty</button>
+        </div>
+    </div>
+
+    <div class="card p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Name</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th class="pe-4 text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="faculty-list">
+                    <!-- Manual fetch for now as we don't have a direct faculty profile list API yet, 
+                         but let's assume we can hit api/v1/auth/ with filters -->
+                    <tr>
+                        <td colspan="5" class="text-center p-5">
+                            <p class="text-muted">Loading faculty data...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // In a real scenario, this would be an API call to a FacultyViewSet
+    fetch('/api/v1/placements/companies/') // Placeholder API call to show something
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById('faculty-list');
+            // Assuming static demo faculty as we don't have a list view for roles yet
+            const faculty = [
+                { name: "Dr. Alan Turing", role: "HOD", dept: "Computer Science", email: "alan.t@college.edu" },
+                { name: "Grace Hopper", role: "Faculty", dept: "Electronics", email: "grace.h@college.edu" },
+                { name: "Nikola Tesla", role: "Faculty", dept: "Mechanical", email: "nikola.t@college.edu" }
+            ];
+
+            let html = '';
+            faculty.forEach(f => {
+                html += `
+                    <tr>
+                        <td class="ps-4 fw-bold">${f.name}</td>
+                        <td><span class="badge bg-info-subtle text-info">${f.role}</span></td>
+                        <td>${f.dept}</td>
+                        <td><span class="badge bg-success-subtle text-success">Online</span></td>
+                        <td class="pe-4 text-end">
+                            <a href="mailto:${f.email}" class="btn btn-sm btn-outline-secondary">Contact</a>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        });
+</script>
+{% endblock %}

@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Faculty Dashboard | Course Management{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">Course & Cohort Management</h3>
+        <p class="text-muted smaller mb-0">Manage internal courses, student cohorts, and syllabus tracking</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-li btn-li-outline" data-bs-toggle="modal" data-bs-target="#cohortModal">
+            <i class="bi bi-people me-2"></i> Create Cohort
+        </button>
+        <button class="btn btn-li btn-li-primary" data-bs-toggle="modal" data-bs-target="#courseModal">
+            <i class="bi bi-plus-lg me-2"></i> New Course
+        </button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- LEFT COLUMN: SYLLABUS & PERFORMANCE -->
+    <div class="col-lg-8">
+        <!-- SYLLABUS TRACKING -->
+        <div class="card-linkedin p-4 mb-4">
+            <h5 class="fw-bold mb-4">Syllabus Completion Status</h5>
+            {% for id, data in syllabus_by_subject.items %}
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <span class="fw-bold">{{ data.subject.name }}</span>
+                        <span class="text-muted smaller ms-2">({{ data.subject.code }})</span>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary">{{ data.pct }}% Complete</span>
+                </div>
+                <div class="progress mb-2" style="height: 8px;">
+                    <div class="progress-bar" style="width: {{ data.pct }}%;"></div>
+                </div>
+                <div class="d-flex justify-content-between smaller text-muted">
+                    <span>{{ data.covered }} / {{ data.total }} Topics Covered</span>
+                    <a href="#" class="text-primary text-decoration-none fw-bold" data-bs-toggle="modal"
+                        data-bs-target="#syllabusUpdateModal" data-subject-id="{{ data.subject.id }}"
+                        data-subject-name="{{ data.subject.name }}">
+                        Update Unit Status
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- PERFORMANCE CHART -->
+        <div class="card-linkedin p-4">
+            <h5 class="fw-bold mb-4">Student Performance Trends (My Subjects)</h5>
+            <canvas id="subjectPerfChart" height="250"></canvas>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: COURSES & COHORTS -->
+    <div class="col-lg-4">
+        <!-- MY COURSES -->
+        <div class="card-linkedin p-4 mb-4">
+            <h5 class="fw-bold mb-3">Internal Courses</h5>
+            {% for course in my_courses %}
+            <div class="border-bottom pb-3 mb-3 last-child-mb-0">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <h6 class="fw-bold mb-0 text-primary">{{ course.name }}</h6>
+                    {% if course.is_published_to_profile %}
+                    <i class="bi bi-eye-fill text-success smaller" title="Visible to Students"></i>
+                    {% endif %}
+                </div>
+                <div class="smaller text-muted mb-2">{{ course.get_category_display }}</div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'download-score-template' course.id %}"
+                        class="btn btn-sm btn-link p-0 text-decoration-none smaller fw-bold">Download Template</a>
+                    <span class="text-muted opacity-25">|</span>
+                    <a href="#" class="btn btn-sm btn-link p-0 text-decoration-none smaller fw-bold"
+                        data-bs-toggle="modal" data-bs-target="#uploadMaterialModal"
+                        data-course-id="{{ course.id }}">Upload Material</a>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted smaller">No courses created yet.</p>
+            {% endfor %}
+        </div>
+
+        <!-- MY COHORTS -->
+        <div class="card-linkedin p-4">
+            <h5 class="fw-bold mb-3">Student Cohorts</h5>
+            {% for cohort in my_cohorts %}
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="rounded bg-light p-2 text-center" style="width: 45px;">
+                    <i class="bi bi-people-fill text-primary"></i>
+                </div>
+                <div>
+                    <div class="smaller fw-bold">{{ cohort.name }}</div>
+                    <div class="smaller text-muted">{{ cohort.student_count }} Students • {{
+                        cohort.get_cohort_type_display }}</div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted smaller">No cohorts defined.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Create Cohort -->
+<div class="modal fade" id="cohortModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Create Student Cohort</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_cohort">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            <label class="smaller fw-bold mb-1">Cohort Name</label>
+                            <input type="text" name="name" class="form-control smaller"
+                                placeholder="e.g. Python Advanced 2026" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="smaller fw-bold mb-1">Type</label>
+                            <select name="cohort_type" class="form-select smaller">
+                                <option value="training">Training / Skill</option>
+                                <option value="academic">Academic / Subject</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="smaller fw-bold mb-1">Select Students (Dept: {{ request.user.department.name
+                                }})</label>
+                            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                {% for student in dept_students %}
+                                <div class="form-check smaller mb-1">
+                                    <input class="form-check-input" type="checkbox" name="student_ids"
+                                        value="{{ student.id }}" id="st{{ student.id }}">
+                                    <label class="form-check-label" for="st{{ student.id }}">
+                                        {{ student.user.full_name }} ({{ student.roll_no }})
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="submit" class="btn btn-li btn-li-primary px-4">Create Cohort</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Create Course -->
+<div class="modal fade" id="courseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">New Institution Course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_course">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="smaller fw-bold mb-1">Course Name</label>
+                        <input type="text" name="name" class="form-control smaller" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="smaller fw-bold mb-1">Category</label>
+                        <select name="category" class="form-select smaller">
+                            <option value="aptitude">Aptitude</option>
+                            <option value="programming">Programming</option>
+                            <option value="soft_skills">Soft Skills</option>
+                            <option value="verbal">Verbal</option>
+                        </select>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="is_published_to_profile"
+                            id="publishCheck">
+                        <label class="form-check-label smaller fw-bold" for="publishCheck">Publish to Student
+                            Profile</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="smaller fw-bold mb-1">Assign Cohorts</label>
+                        <select name="cohort_ids" class="form-select smaller" multiple>
+                            {% for c in my_cohorts %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="submit" class="btn btn-li btn-li-primary px-4">Create Course</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{{ perf_labels|json_script:"perf-labels" }}
+{{ perf_values|json_script:"perf-values" }}
+
+
+{% block extra_js %}
+<script>
+    const labelsData = JSON.parse(document.getElementById('perf-labels').textContent);
+    const valuesData = JSON.parse(document.getElementById('perf-values').textContent);
+
+    const ctx = document.getElementById('subjectPerfChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labelsData,
+                datasets: [{
+                    label: 'Avg Score',
+                    data: valuesData,
+                    backgroundColor: '#0a66c2',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { min: 0, max: 100 } }
+            }
+        });
+    }
+</script>
+<script>
+    const updateModal = document.getElementById('marksUpdateModal');
+    if (updateModal) {
+        updateModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const studentId = button.getAttribute('data-student-id');
+            const studentName = button.getAttribute('data-student-name');
+
+            document.getElementById('modalStudentName').textContent = 'Update ' + studentName;
+            document.getElementById('modalStudentIdMarks').value = studentId;
+        });
+    }
+
+    // Mentee performance chart
+    const menteeCtx = document.getElementById('menteeChart');
+    if (menteeCtx) {
+        new Chart(menteeCtx, {
+            type: 'line',
+            data: {
+                labels: [{% for stat in student_stats %}'{{ stat.student.user.full_name|slice:":10" }}',{% endfor %}],
+    datasets: [
+        {
+            label: 'CGPA',
+            data: [{% for stat in student_stats %}{% if stat.cgpa %}{ { stat.cgpa } } {% else %} 0{% endif %}, {% endfor %}],
+    borderColor: '#0a66c2',
+        tension: 0.3
+                    },
+    {
+        label: 'Avg Marks / 10',
+            data: [{% for stat in student_stats %} {% if stat.avg_marks %} { { stat.avg_marks } } {% else %} 0{% endif %} / 10, {% endfor %}],
+    borderColor: '#60a5fa',
+        tension: 0.3
+                    }
+                ]
+            },
+    options: {
+        maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+    }
+        });
+    }
+</script>
+{% endblock %}

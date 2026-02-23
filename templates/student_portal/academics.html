@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% block title %}Academics | {{ profile.roll_no }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Academic Records</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'student-portal' %}"
+                            class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Academics</li>
+                </ol>
+            </nav>
+        </div>
+        <button onclick="window.print()" class="btn btn-outline-dark btn-sm d-none d-md-block">
+            <i class="bi bi-printer me-2"></i> Print Transcript
+        </button>
+    </div>
+
+    <!-- Summary Tabs Section -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-0">
+            <ul class="nav nav-tabs border-0 px-4 pt-3" id="academicTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active border-0 py-3 fw-bold text-uppercase tracking-wider smaller"
+                        id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab"
+                        style="letter-spacing: 0.1em;">Subject Summary</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link border-0 py-3 fw-bold text-uppercase tracking-wider smaller" id="marks-tab"
+                        data-bs-toggle="tab" data-bs-target="#marks" type="button" role="tab"
+                        style="letter-spacing: 0.1em;">Marks History</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="academicTabsContent">
+                <!-- Subject Summary Tab -->
+                <div class="tab-pane fade show active p-4" id="summary" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle border-top">
+                            <thead class="bg-light">
+                                <tr class="smaller text-muted text-uppercase fw-bold">
+                                    <th class="ps-3 py-3">Subject Name</th>
+                                    <th>Sem</th>
+                                    <th class="text-center">Internal</th>
+                                    <th class="text-center">External</th>
+                                    <th class="text-center">Total</th>
+                                    <th class="text-center">Grade</th>
+                                    <th class="text-center pe-3">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for id, stats in subject_stats.items %}
+                                <tr>
+                                    <td class="ps-3 py-3">
+                                        <div class="fw-bold text-dark">{{ stats.subject.name }}</div>
+                                        <div class="text-muted smaller">{{ stats.subject.code }} &bull; {{
+                                            stats.subject.credits }} Credits</div>
+                                    </td>
+                                    <td>{{ stats.subject.semester }}</td>
+
+                                    <td class="text-center fw-semibold text-muted">{{ stats.marks.internal|default:"-"
+                                        }}</td>
+                                    <td class="text-center fw-semibold text-muted">{{ stats.marks.external|default:"-"
+                                        }}</td>
+                                    <td class="text-center fw-bold text-primary">{{ stats.marks.total|default:"-" }}
+                                    </td>
+                                    <td class="text-center"><span
+                                            class="badge bg-primary-subtle text-primary px-3 rounded-pill">{{
+                                            stats.marks.grade|default:"-" }}</span></td>
+                                    <td class="text-center pe-3">
+                                        {% if stats.marks %}
+                                        {% if stats.marks.grade != 'F' %}
+                                        <span class="badge bg-success-subtle text-success small">Pass</span>
+                                        {% else %}
+                                        <span class="badge bg-danger-subtle text-danger small">Fail</span>
+                                        {% endif %}
+                                        {% else %}
+                                        <span class="text-muted smaller">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-5 text-muted">No subject records available.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Marks History Tab -->
+                <div class="tab-pane fade p-4" id="marks" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr class="smaller text-muted text-uppercase">
+                                    <th class="ps-3 py-3">Subject</th>
+                                    <th>Internal</th>
+                                    <th>External</th>
+                                    <th>Total</th>
+                                    <th>Grade</th>
+                                    <th class="pe-3">Recorded At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for m in marks %}
+                                <tr>
+                                    <td class="ps-3 py-3 fw-semibold">{{ m.subject.name }}</td>
+                                    <td>{{ m.internal }}</td>
+                                    <td>{{ m.external }}</td>
+                                    <td class="fw-bold text-primary">{{ m.total }}</td>
+                                    <td><span class="badge bg-info-subtle text-info">{{ m.grade }}</span></td>
+                                    <td class="text-muted smaller pe-3">{{ m.created_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">No marks logs found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .smaller {
+        font-size: 0.75rem;
+    }
+
+    .nav-tabs .nav-link {
+        color: #64748b;
+        margin-right: 20px;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: var(--accent-color) !important;
+        background: transparent !important;
+    }
+
+    .nav-tabs .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: var(--accent-color);
+        border-radius: 3px 3px 0 0;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: var(--accent-color);
+    }
+
+    .bg-primary-subtle {
+        background-color: rgba(59, 130, 246, 0.1) !important;
+        color: #3b82f6 !important;
+    }
+
+    .bg-success-subtle {
+        background-color: rgba(16, 185, 129, 0.1) !important;
+        color: #10b981 !important;
+    }
+
+    .bg-danger-subtle {
+        background-color: rgba(239, 68, 68, 0.1) !important;
+        color: #ef4444 !important;
+    }
+
+    .bg-info-subtle {
+        background-color: rgba(6, 182, 212, 0.1) !important;
+        color: #06b6d4 !important;
+    }
+</style>
+{% endblock %}

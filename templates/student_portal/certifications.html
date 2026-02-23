@@ -1,0 +1,75 @@
+﻿{% extends 'base.html' %}
+{% block title %}Certifications{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Certifications</h1>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCertModal">+ Add Certificate</button>
+</div>
+
+{% if certs %}
+<div class="row g-3">
+    {% for c in certs %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <h6 class="mb-1">{{ c.title }}</h6>
+                {% if c.is_verified %}
+                <span class="badge bg-success">Verified</span>
+                {% elif c.cert_type == 'college' %}
+                <span class="badge bg-warning text-dark">Pending Review</span>
+                {% else %}
+                <span class="badge bg-secondary">Unverified</span>
+                {% endif %}
+            </div>
+            <small class="text-muted">{{ c.issuer }}</small>
+            <small class="text-muted">{{ c.issued_date }}</small>
+            <div class="mt-2">
+                {% if c.cert_url %}<a href="{{ c.cert_url }}" class="btn btn-sm btn-outline-primary" target="_blank">View Online</a>{% endif %}
+                {% if c.file %}<a href="{{ c.file.url }}" class="btn btn-sm btn-outline-secondary" target="_blank">Download</a>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card p-5 text-center text-muted">No certifications added yet.</div>
+{% endif %}
+
+<!-- Add Modal -->
+<div class="modal fade" id="addCertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Certification</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <select name="cert_type" class="form-select" id="certTypeSelect">
+                            <option value="link">External Link (Credly / Exam Center)</option>
+                            <option value="upload">Manual Upload</option>
+                            <option value="college">College Issued</option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Title *</label><input type="text" name="title" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label">Issuer *</label><input type="text" name="issuer" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label">Issue Date *</label><input type="date" name="issued_date" class="form-control" required></div>
+                    <div id="urlField" class="mb-3"><label class="form-label">Certificate URL</label><input type="url" name="cert_url" class="form-control" placeholder="https://credly.com/..."></div>
+                    <div id="fileField" class="mb-3" style="display:none"><label class="form-label">Upload File</label><input type="file" name="file" class="form-control" accept=".pdf,.jpg,.png"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+document.getElementById('certTypeSelect').addEventListener('change', function() {
+    var isLink = this.value === 'link';
+    document.getElementById('urlField').style.display = isLink ? 'block' : 'none';
+    document.getElementById('fileField').style.display = isLink ? 'none' : 'block';
+});
+</script>
+{% endblock %}

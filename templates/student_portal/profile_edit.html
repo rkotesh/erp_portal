@@ -1,0 +1,138 @@
+﻿{% extends 'base.html' %}
+{% block title %}Edit Profile{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Profile</h1>
+    <div>
+        <form method="post" action="{% url 'student-toggle-public' %}" class="d-inline">
+            {% csrf_token %}
+            {% if profile.is_public %}
+            <button class="btn btn-sm btn-success">&#127760; Public Profile ON</button>
+            {% else %}
+            <button class="btn btn-sm btn-outline-secondary">&#128274; Private</button>
+            {% endif %}
+        </form>
+        <a href="{% url 'student-portal' %}" class="btn btn-sm btn-outline-secondary ms-2">&#8592; Back</a>
+    </div>
+</div>
+
+{% if profile.is_public %}
+<div class="alert alert-success py-2 mb-3 d-flex align-items-center justify-content-between"
+    style="background: rgba(25, 135, 84, 0.08); border: 1px solid rgba(25, 135, 84, 0.2);">
+    <div>
+        <i class="bi bi-globe2 me-2 text-success"></i>
+        <strong class="small">Shareable Link:</strong>
+        <code id="publicLink"
+            class="ms-1 small user-select-all">{{ request.scheme }}://{{ request.get_host }}{% url 'student-public-profile' profile.slug %}</code>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="copyProfileLink()">
+        <i class="bi bi-clipboard me-1"></i> <span id="copyText">Copy</span>
+    </button>
+</div>
+<script>
+    function copyProfileLink() {
+        var link = document.getElementById('publicLink').textContent.trim();
+        navigator.clipboard.writeText(link).then(function () {
+            var btn = document.getElementById('copyText');
+            btn.textContent = 'Copied!';
+            setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+        });
+    }
+</script>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row g-4">
+
+        <!-- Photo & Resume -->
+        <div class="col-md-4">
+            <div class="card p-4 text-center">
+                {% if profile.photo %}
+                <img src="{{ profile.photo.url }}" class="rounded-circle mb-3" width="100" height="100"
+                    style="object-fit:cover;">
+                {% else %}
+                <div class="rounded-circle bg-primary d-inline-flex align-items-center
+                    justify-content-center mb-3 mx-auto" style="width:100px;height:100px;">
+                    <span class="text-white fw-bold fs-2">{{ profile.user.full_name|first|upper }}</span>
+                </div>
+                {% endif %}
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Professional Photo</label>
+                    <input type="file" name="photo" class="form-control form-control-sm" accept="image/*">
+                </div>
+                <div>
+                    <label class="form-label small fw-semibold">Resume (PDF)</label>
+                    {% if profile.resume %}
+                    <a href="{{ profile.resume.url }}" class="btn btn-sm btn-outline-primary d-block mb-2"
+                        target="_blank">View Current Resume</a>
+                    {% endif %}
+                    <input type="file" name="resume" class="form-control form-control-sm" accept=".pdf,.doc,.docx">
+                </div>
+            </div>
+
+            <!-- Read-only info -->
+            <div class="card p-3 mt-3">
+                <h6 class="mb-2">Academic Info</h6>
+                <p class="small mb-1"><strong>Roll No:</strong> {{ profile.roll_no }}</p>
+                <p class="small mb-1"><strong>Batch:</strong> {{ profile.batch }}</p>
+                <p class="small mb-1"><strong>Department:</strong> {{ profile.department }}</p>
+                <p class="small mb-0"><strong>CGPA:</strong> {{ profile.cgpa }}</p>
+            </div>
+        </div>
+
+        <!-- Personal Info & Links -->
+        <div class="col-md-8">
+            <div class="card p-4 mb-4">
+                <h5 class="mb-3">Personal Information</h5>
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="full_name" class="form-control" value="{{ profile.user.full_name }}">
+                </div>
+            </div>
+
+            <div class="card p-4">
+                <h5 class="mb-1">Professional Links</h5>
+                <p class="text-muted small mb-3">Only shown on your public profile when filled in.</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small">LinkedIn (required for placement)</label>
+                        <input type="url" name="linkedin_url" class="form-control form-control-sm"
+                            placeholder="https://linkedin.com/in/..." value="{{ profile.linkedin_url }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">GitHub</label>
+                        <input type="url" name="github_url" class="form-control form-control-sm"
+                            placeholder="https://github.com/..." value="{{ profile.github_url }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">LeetCode</label>
+                        <input type="url" name="leetcode_url" class="form-control form-control-sm"
+                            placeholder="https://leetcode.com/u/..." value="{{ profile.leetcode_url }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">HackerRank</label>
+                        <input type="url" name="hackerrank_url" class="form-control form-control-sm"
+                            placeholder="https://hackerrank.com/profile/..." value="{{ profile.hackerrank_url }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">CodeChef</label>
+                        <input type="url" name="codechef_url" class="form-control form-control-sm"
+                            placeholder="https://codechef.com/users/..." value="{{ profile.codechef_url }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Codeforces</label>
+                        <input type="url" name="codeforces_url" class="form-control form-control-sm"
+                            placeholder="https://codeforces.com/profile/..." value="{{ profile.codeforces_url }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+        <a href="{% url 'student-portal' %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+    </div>
+</form>
+{% endblock %}

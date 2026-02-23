@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}HOD Dashboard | {{ dept.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">{{ dept.name }} Administration</h3>
+        <p class="text-muted smaller mb-0">Manage faculty, mentoring, and academic scheduling</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-li btn-li-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            <i class="bi bi-upload me-2"></i> Upload Academic Docs
+        </button>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- MENTOR ASSIGNMENT -->
+    <div class="col-lg-8">
+        <div class="card-linkedin p-4 h-100">
+            <h5 class="fw-bold mb-4">Mentor Assignments ({{ current_year }})</h5>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-light p-3 border-0">
+                        <div class="smaller text-muted uppercase fw-bold mb-1">Unassigned Students</div>
+                        <div class="fs-4 fw-bold text-primary">{{ unassigned_students|length }}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-light p-3 border-0">
+                        <div class="smaller text-muted uppercase fw-bold mb-1">Department Mentors</div>
+                        <div class="fs-4 fw-bold text-success">{{ mentors|length }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" class="row g-2 align-items-end mb-4 border-bottom pb-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="assign_mentor">
+                <div class="col-md-5">
+                    <label class="smaller fw-bold text-muted mb-1">Select Student</label>
+                    <select name="student_id" class="form-select smaller" required>
+                        <option value="">-- Choose Student --</option>
+                        {% for s in unassigned_students %}
+                        <option value="{{ s.id }}">{{ s.user.full_name }} ({{ s.roll_no }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="smaller fw-bold text-muted mb-1">Select Mentor</label>
+                    <select name="mentor_id" class="form-select smaller" required>
+                        <option value="">-- Choose Mentor --</option>
+                        {% for m in mentors %}
+                        <option value="{{ m.id }}">{{ m.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-li btn-li-primary w-100">Assign</button>
+                </div>
+            </form>
+
+            <h6 class="fw-bold mb-3">Recent Assignments</h6>
+            <div class="table-responsive">
+                <table class="table table-hover smaller align-middle">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Mentor</th>
+                            <th>Assigned Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in assignments|slice:":10" %}
+                        <tr>
+                            <td>{{ a.student.user.full_name }}</td>
+                            <td>{{ a.mentor.full_name }}</td>
+                            <td>{{ a.created_at|date:"d M" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERFORMANCE CHART -->
+    <div class="col-lg-4">
+        <div class="card-linkedin p-4 mb-4">
+            <h5 class="fw-bold mb-4">Batch CGPA Trends</h5>
+            <canvas id="batchChart" height="250"></canvas>
+        </div>
+
+        <div class="card-linkedin p-4">
+            <h5 class="fw-bold mb-3">Academic Calendar</h5>
+            {% for cal in calendars %}
+            <div class="d-flex align-items-center gap-2 mb-2 p-2 bg-light rounded-li">
+                <i class="bi bi-calendar-check text-primary"></i>
+                <div class="flex-grow-1 smaller">
+                    <div class="fw-bold">{{ cal.title }}</div>
+                    <div class="text-muted">Sem {{ cal.semester }}</div>
+                </div>
+                <a href="{{ cal.file.url }}" class="btn btn-sm btn-link"><i class="bi bi-download"></i></a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold">Upload Academic Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <ul class="nav nav-pills nav-fill mb-3" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active smaller fw-bold" data-bs-toggle="pill"
+                            data-bs-target="#lessonPlanTab">Lesson Plan</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link smaller fw-bold" data-bs-toggle="pill"
+                            data-bs-target="#timetableTab">Timetable</button>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="lessonPlanTab">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="upload_lesson_plan">
+                            <div class="mb-3">
+                                <label class="smaller fw-bold mb-1">Subject</label>
+                                <select name="subject_id" class="form-select smaller" required>
+                                    <!-- Populated from context -->
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="smaller fw-bold mb-1">File</label>
+                                <input type="file" name="file" class="form-control smaller" required>
+                            </div>
+                            <button type="submit" class="btn btn-li btn-li-primary w-100 py-2">Publish Plan</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{{ perf_labels|json_script:"perf-labels" }}
+{{ perf_values|json_script:"perf-values" }}
+
+
+{% block extra_js %}
+<script>
+    const labelsData = JSON.parse(document.getElementById('perf-labels').textContent);
+    const valuesData = JSON.parse(document.getElementById('perf-values').textContent);
+
+    const ctx = document.getElementById('batchChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labelsData,
+                datasets: [{
+                    label: 'Avg CGPA',
+                    data: valuesData,
+                    backgroundColor: 'rgba(10, 102, 194, 0.7)',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { min: 0, max: 10 } }
+            }
+        });
+    }
+</script>
+{% endblock %}

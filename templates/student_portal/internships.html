@@ -1,0 +1,51 @@
+﻿{% extends 'base.html' %}
+{% block title %}Internships{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Internships</h1>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addInternModal">+ Add Internship</button>
+</div>
+{% if internships %}
+<div class="row g-3">
+    {% for i in internships %}
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h6>{{ i.role }} at {{ i.organization }}</h6>
+            <small class="text-muted">{{ i.start_date }} to {% if i.end_date %}{{ i.end_date }}{% else %}Present{% endif %}</small>
+            {% if i.technologies %}<p class="small mt-2 mb-1"><strong>Technologies:</strong> {{ i.technologies }}</p>{% endif %}
+            {% if i.supervisor_name %}<p class="small mb-1"><strong>Supervisor:</strong> {{ i.supervisor_name }}{% if i.supervisor_email %} &lt;{{ i.supervisor_email }}&gt;{% endif %}</p>{% endif %}
+            {% if i.certificate %}<a href="{{ i.certificate.url }}" class="btn btn-sm btn-outline-primary mt-2" target="_blank">Certificate</a>{% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card p-5 text-center text-muted">No internships added yet.</div>
+{% endif %}
+
+<div class="modal fade" id="addInternModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Internship</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body row g-3">
+                    <div class="col-md-6"><label class="form-label">Organization *</label><input type="text" name="organization" class="form-control" required></div>
+                    <div class="col-md-6"><label class="form-label">Your Role *</label><input type="text" name="role" class="form-control" required></div>
+                    <div class="col-md-6"><label class="form-label">Start Date *</label><input type="date" name="start_date" class="form-control" required></div>
+                    <div class="col-md-6"><label class="form-label">End Date</label><input type="date" name="end_date" class="form-control"></div>
+                    <div class="col-12"><label class="form-label">Technologies / Domain</label><input type="text" name="technologies" class="form-control" placeholder="Python, ML, Web Dev..."></div>
+                    <div class="col-12"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+                    <div class="col-md-6"><label class="form-label">Supervisor Name</label><input type="text" name="supervisor_name" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label">Supervisor Email</label><input type="email" name="supervisor_email" class="form-control"></div>
+                    <div class="col-12"><label class="form-label">Certificate (PDF/Image)</label><input type="file" name="certificate" class="form-control"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

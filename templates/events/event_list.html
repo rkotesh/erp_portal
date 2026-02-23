@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Events | CIET College Website{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">Campus Events</h3>
+        <p class="text-muted smaller mb-0">Stay updated with the latest happenings at CIET</p>
+    </div>
+    {% if user.role in 'Chairman,Director,Principal,HOD' %}
+    <a href="{% url 'event-create' %}" class="btn btn-maroon btn-sm">
+        <i class="bi bi-plus-lg me-2"></i>Create Event
+    </a>
+    {% endif %}
+</div>
+
+<div class="row g-4">
+    {% for event in events %}
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm" style="border-radius: 15px; overflow: hidden;">
+            {% if event.image %}
+            <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}"
+                style="height: 200px; object-fit: cover;">
+            {% else %}
+            <div class="bg-maroon-subtle d-flex align-items-center justify-content-center" style="height: 200px;">
+                <i class="bi bi-calendar-event fs-1 text-maroon"></i>
+            </div>
+            {% endif %}
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-primary-subtle text-primary px-3 rounded-pill">{{ event.date|date:"M d, Y"
+                        }}</span>
+                    <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ event.location }}</small>
+                </div>
+                <h5 class="fw-bold mb-3">{{ event.title }}</h5>
+                <p class="text-muted smaller mb-4">{{ event.description|truncatewords:20 }}</p>
+                <div class="d-flex align-items-center mt-auto pt-3 border-top">
+                    <div class="bg-secondary-subtle rounded-circle p-1 me-2" style="width: 30px; height: 30px;">
+                        <i
+                            class="bi bi-person smaller text-secondary d-flex align-items-center justify-content-center h-100"></i>
+                    </div>
+                    <small class="text-muted">By {{ event.created_by.full_name|default:event.created_by.email }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <div class="text-muted mb-3"><i class="bi bi-calendar-x fs-1"></i></div>
+        <p class="text-muted">No upcoming events at the moment.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

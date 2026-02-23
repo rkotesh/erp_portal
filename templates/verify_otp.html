@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify OTP - College ERP{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="card p-4">
+            <h3 class="text-center mb-4">Security Verification</h3>
+            <p class="text-center text-muted small mb-4">
+                We've sent a 6-digit OTP to your registered email. Please enter it below to continue.
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="otp" class="form-label d-block text-center fw-bold">Enter OTP</label>
+                    {{ form.otp }}
+                    {% if form.otp.errors %}
+                    <div class="text-danger mt-2 small text-center">{{ form.otp.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2">Verify & Continue</button>
+            </form>
+
+            <div class="mt-4 text-center">
+                <p class="text-muted small">
+                    Didn't receive code? <a href="#" onclick="alert('OTP resent!');">Resend OTP</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .sidebar {
+        display: none;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .form-control {
+        font-size: 1.5rem;
+        letter-spacing: 0.5rem;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mentor Dashboard | My Students{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">Mentoring Dashboard</h3>
+        <p class="text-muted smaller mb-0">Academic tracking and progress monitoring for assigned students</p>
+    </div>
+</div>
+
+<!-- STUDENTS GRID -->
+<div class="card-linkedin p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold mb-0">My Mentees ({{ assignments|length }})</h5>
+        <div class="d-flex gap-2">
+            <button class="btn btn-li btn-li-outline btn-sm">Download List</button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle smaller">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Roll No</th>
+                    <th>Attendance</th>
+                    <th>Avg Score</th>
+                    <th>CGPA</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in student_stats %}
+                <tr>
+                    <td>
+                        <div class="fw-bold text-primary">{{ stat.student.user.full_name }}</div>
+                        <div class="smaller text-muted">{{ stat.student.batch }}</div>
+                    </td>
+                    <td>{{ stat.student.roll_no }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <span
+                                class="fw-bold {% if stat.att_pct < 75 %}text-danger{% else %}text-success{% endif %}">{{
+                                stat.att_pct }}%</span>
+                        </div>
+                    </td>
+                    <td>{{ stat.avg_marks }}</td>
+                    <td><span class="fw-bold">{{ stat.cgpa }}</span></td>
+                    <td>
+                        <button class="btn btn-li btn-li-primary btn-sm px-3" data-bs-toggle="modal"
+                            data-bs-target="#updateModal" data-student-id="{{ stat.student.id }}"
+                            data-student-name="{{ stat.student.user.full_name }}">
+                            Update
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Performance Comparison -->
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card-linkedin p-4">
+            <h5 class="fw-bold mb-4">Academic Progress Overview</h5>
+            <canvas id="menteeChart" height="300"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card-linkedin p-4">
+            <h5 class="fw-bold mb-3">External Courses tracking</h5>
+            <p class="smaller text-muted">Courses currently being pursued by mentees</p>
+            {% for course in inst_courses %}
+            <div class="border-bottom pb-2 mb-2">
+                <div class="smaller fw-bold">{{ course.name }}</div>
+                <div class="text-muted" style="font-size: 11px;">{{ course.get_category_display }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Update Modal (HTMX/Bootstrap combo) -->
+<div class="modal fade" id="updateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modalStudentName">Update Student Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs nav-fill mb-3" id="updateTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active smaller fw-bold" data-bs-toggle="tab"
+                            data-bs-target="#marksTab">Marks</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link smaller fw-bold" data-bs-toggle="tab"
+                            data-bs-target="#attendanceTab">Attendance</button>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <!-- Marks Form -->
+                    <div class="tab-pane fade show active" id="marksTab">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="upload_marks">
+                            <input type="hidden" name="student_id" id="modalStudentIdMarks">
+                            <div class="mb-3">
+                                <label class="smaller fw-bold mb-1">Subject</label>
+                                <select name="subject_id" class="form-select smaller" required>
+                                    {% for sub in subjects %}
+                                    <option value="{{ sub.id }}">{{ sub.name }} ({{ sub.code }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label class="smaller fw-bold mb-1">Internal</label>
+                                    <input type="number" name="internal" class="form-control smaller" required>
+                                </div>
+                                <div class="col">
+                                    <label class="smaller fw-bold mb-1">External</label>
+                                    <input type="number" name="external" class="form-control smaller" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="smaller fw-bold mb-1">Grade</label>
+                                <input type="text" name="grade" class="form-control smaller" placeholder="e.g. A+">
+                            </div>
+                            <button type="submit" class="btn btn-li btn-li-primary w-100 py-2">Save Marks</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{{ student_stats|json_script:"mentee-data" }}
+
+
+{% block extra_js %}
+<script>
+    const updateModal = document.getElementById('updateModal');
+    if (updateModal) {
+        updateModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const studentId = button.getAttribute('data-student-id');
+            const studentName = button.getAttribute('data-student-name');
+
+            document.getElementById('modalStudentName').textContent = 'Update ' + studentName;
+            document.getElementById('modalStudentIdMarks').value = studentId;
+        });
+    }
+
+    const menteeData = JSON.parse(document.getElementById('mentee-data').textContent);
+    const menteeCtx = document.getElementById('menteeChart');
+    if (menteeCtx && menteeData) {
+        new Chart(menteeCtx, {
+            type: 'line',
+            data: {
+                labels: menteeData.map(s => (s.student?.user?.full_name || '').slice(0, 10)),
+                datasets: [
+                    {
+                        label: 'CGPA',
+                        data: menteeData.map(s => s.cgpa || 0),
+                        borderColor: '#0a66c2',
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Avg Marks / 10',
+                        data: menteeData.map(s => (s.avg_marks || 0) / 10),
+                        borderColor: '#60a5fa',
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}HR View | {{ student.user.full_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'hr-dashboard' %}" class="btn btn-link link-secondary p-0 text-decoration-none smaller">
+        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <!-- Profile Card -->
+        <div class="card-linkedin p-4 text-center">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold mx-auto mb-3"
+                style="width: 80px; height: 80px; font-size: 32px;">
+                {{ student.user.full_name|first|upper }}
+            </div>
+            <h4 class="fw-bold mb-1">{{ student.user.full_name }}</h4>
+            <p class="text-muted small mb-0">{{ student.roll_no }} | Batch {{ student.batch }}</p>
+            <div class="mt-3 p-3 bg-light rounded-li">
+                <div class="smaller text-muted uppercase fw-bold mb-1">Academic Performance</div>
+                <div class="h3 fw-bold text-maroon mb-0">{{ student.cgpa }} CGPA</div>
+            </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="card-linkedin p-4 mt-4">
+            <h5 class="fw-bold mb-3 smaller uppercase text-muted">Contact Details</h5>
+            <div class="mb-2">
+                <div class="smaller text-muted">Email</div>
+                <div class="fw-bold">{{ student.user.email }}</div>
+            </div>
+            <div class="mb-0">
+                <div class="smaller text-muted">Phone</div>
+                <div class="fw-bold">{{ student.user.phone|default:"Not Provided" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Academic History -->
+        <div class="card-linkedin p-4 mb-4">
+            <h5 class="fw-bold mb-4">Academic Background</h5>
+            <div class="row g-4">
+                <div class="col-md-6 border-end">
+                    <div class="mb-3">
+                        <div class="smaller text-muted uppercase fw-bold">Department</div>
+                        <div class="fw-bold text-dark">{{ student.department.name }} ({{ student.department.code }})
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <div class="smaller text-muted uppercase fw-bold">Admission Type</div>
+                        <div class="fw-bold text-dark">Regular Performance Tracking</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certification & Skills Placeholder -->
+        <div class="card-linkedin p-4">
+            <h5 class="fw-bold mb-3">Institutional Certifications</h5>
+            <p class="text-muted smaller">Profiles shared with HR include verified institutional credentials tracked via
+                the ERP system.</p>
+            <div class="bg-light p-5 rounded-li text-center border-dash">
+                <i class="bi bi-patch-check fs-1 text-muted mb-3 d-block"></i>
+                <span class="text-muted small">No external certifications linked yet.</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

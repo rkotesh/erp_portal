@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 d-flex justify-content-between align-items-center mb-4">
+            <h1>Students Directory</h1>
+            <button class="btn btn-primary">+ Add Student</button>
+        </div>
+    </div>
+
+    <div class="card p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Roll No</th>
+                        <th>Name (Email)</th>
+                        <th>Department</th>
+                        <th>CGPA</th>
+                        <th>Status</th>
+                        <th class="pe-4 text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody hx-get="/api/v1/students/profiles/" hx-trigger="load" hx-target="this" hx-swap="innerHTML">
+                    <tr>
+                        <td colspan="6" class="text-center p-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('htmx:afterRequest', function (evt) {
+        if (evt.detail.target.tagName === 'TBODY') {
+            const data = JSON.parse(evt.detail.xhr.responseText);
+            // Handling DRF Pagination format if present
+            const students = data.results || data;
+
+            let html = '';
+            students.forEach(s => {
+                html += `
+                    <tr>
+                        <td class="ps-4 fw-bold text-primary">${s.roll_no}</td>
+                        <td>${s.user_email || s.user}</td>
+                        <td>${s.department_name || 'N/A'}</td>
+                        <td><span class="badge bg-light text-dark">${s.cgpa}</span></td>
+                        <td><span class="badge bg-success-subtle text-success">Active</span></td>
+                        <td class="pe-4 text-end">
+                            <a href="/student/detail/${s.id}/" class="btn btn-sm btn-outline-secondary">View</a>
+                        </td>
+                    </tr>
+                `;
+            });
+            evt.detail.target.innerHTML = html;
+        }
+    });
+</script>
+{% endblock %}

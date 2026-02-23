@@ -1,0 +1,563 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ profile.user.full_name }} — Student Profile | CIET</title>
+    <meta name="description"
+        content="{{ profile.user.full_name }} — {{ profile.department }} student at Chalapathi Institute of Engineering and Technology, Batch {{ profile.batch }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --maroon: #800000;
+            --gold: #C5A55A;
+            --dark: #0f172a;
+            --card: #1e293b;
+            --card-light: #273548;
+            --accent: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--dark);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        /* Topbar */
+        .topbar {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 0.75rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .topbar-brand span {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--gold);
+        }
+
+        /* Hero Banner */
+        .hero-banner {
+            background: linear-gradient(135deg, var(--maroon) 0%, #4a1942 50%, #1e3a5f 100%);
+            padding: 3rem 2rem 5rem;
+            position: relative;
+            border-radius: 0 0 24px 24px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: var(--card);
+            border-radius: 20px;
+            margin-top: -3rem;
+            position: relative;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .avatar-ring {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 4px solid var(--gold);
+            padding: 3px;
+            margin-top: -4.5rem;
+            background: var(--card);
+        }
+
+        .avatar-ring img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--maroon), #4a1942);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .profile-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .profile-meta {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .cgpa-badge {
+            background: linear-gradient(135deg, var(--gold), #e8c252);
+            color: #000;
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 6px 16px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+
+        /* Social Links */
+        .social-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.06);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .social-links a:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .social-links a i {
+            font-size: 1rem;
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .section-title i {
+            color: var(--gold);
+        }
+
+        /* Item Card */
+        .item-card {
+            background: var(--card-light);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: border-color 0.2s;
+        }
+
+        .item-card:hover {
+            border-color: rgba(197, 165, 90, 0.3);
+        }
+
+        .item-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #fff;
+        }
+
+        .item-sub {
+            font-size: 0.78rem;
+            color: #94a3b8;
+        }
+
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            padding: 3px 10px;
+            border-radius: 50px;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-weight: 500;
+            margin-right: 4px;
+        }
+
+        .tag-tech {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        /* Footer */
+        .page-footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: #475569;
+            font-size: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .page-footer img {
+            height: 20px;
+            opacity: 0.5;
+            margin-bottom: 6px;
+        }
+
+        /* Print-friendly */
+        @media print {
+            body {
+                background: #fff;
+                color: #000;
+            }
+
+            .section-card,
+            .profile-card {
+                border: 1px solid #ddd;
+            }
+
+            .topbar,
+            .social-links a,
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .hero-banner {
+                padding: 2rem 1rem 4rem;
+            }
+
+            .profile-card {
+                padding: 1.25rem;
+            }
+
+            .profile-name {
+                font-size: 1.3rem;
+            }
+
+            .avatar-ring {
+                width: 90px;
+                height: 90px;
+                margin-top: -3.5rem;
+            }
+
+            .social-links a {
+                padding: 6px 12px;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Topbar -->
+    <div class="topbar">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a href="/" class="topbar-brand">
+                <i class="bi bi-mortarboard-fill text-white"></i>
+                <span>CIET ERP</span>
+            </a>
+            <div class="d-flex align-items-center gap-2 no-print">
+                <button onclick="window.print()" class="btn btn-sm btn-outline-light rounded-pill px-3"
+                    style="font-size: 0.75rem;">
+                    <i class="bi bi-printer me-1"></i> Print
+                </button>
+                <button onclick="copyLink()" class="btn btn-sm btn-outline-warning rounded-pill px-3"
+                    style="font-size: 0.75rem;">
+                    <i class="bi bi-link-45deg me-1"></i> Copy Link
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+        <div class="container">
+            <div class="hero-badge">
+                <i class="bi bi-patch-check-fill"></i> Verified Student Profile
+            </div>
+            <h2 class="text-white fw-bold mb-1">{{ profile.user.full_name }}</h2>
+            <p class="mb-0" style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">
+                {{ profile.department.name }} &bull; Batch {{ profile.batch }}
+            </p>
+        </div>
+    </div>
+
+    <div class="container" style="max-width: 850px;">
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <div class="d-flex flex-wrap align-items-end gap-3">
+                <div class="avatar-ring">
+                    {% if profile.photo %}
+                    <img src="{{ profile.photo.url }}" alt="{{ profile.user.full_name }}">
+                    {% else %}
+                    <div class="avatar-placeholder">{{ profile.user.full_name|first|upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                    <div class="profile-name">{{ profile.user.full_name }}</div>
+                    <div class="profile-meta">
+                        <i class="bi bi-hash"></i> {{ profile.roll_no }} &bull;
+                        <i class="bi bi-building"></i> {{ profile.department }} &bull;
+                        <i class="bi bi-calendar3"></i> {{ profile.batch }}
+                    </div>
+                </div>
+                <div>
+                    <span class="cgpa-badge"><i class="bi bi-star-fill me-1"></i> CGPA {{ profile.cgpa }}</span>
+                </div>
+            </div>
+
+            <!-- Social & Resume Links -->
+            <div class="social-links">
+                {% if profile.linkedin_url %}<a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener"><i
+                        class="bi bi-linkedin"></i> LinkedIn</a>{% endif %}
+                {% if profile.github_url %}<a href="{{ profile.github_url }}" target="_blank" rel="noopener"><i
+                        class="bi bi-github"></i> GitHub</a>{% endif %}
+                {% if profile.leetcode_url %}<a href="{{ profile.leetcode_url }}" target="_blank" rel="noopener"><i
+                        class="bi bi-code-square"></i> LeetCode</a>{% endif %}
+                {% if profile.hackerrank_url %}<a href="{{ profile.hackerrank_url }}" target="_blank" rel="noopener"><i
+                        class="bi bi-cpu"></i> HackerRank</a>{% endif %}
+                {% if profile.codechef_url %}<a href="{{ profile.codechef_url }}" target="_blank" rel="noopener"><i
+                        class="bi bi-trophy"></i> CodeChef</a>{% endif %}
+                {% if profile.codeforces_url %}<a href="{{ profile.codeforces_url }}" target="_blank" rel="noopener"><i
+                        class="bi bi-braces"></i> Codeforces</a>{% endif %}
+                {% if profile.resume %}<a href="{{ profile.resume.url }}" target="_blank" rel="noopener"
+                    style="background: rgba(197,165,90,0.15); color: var(--gold); border-color: rgba(197,165,90,0.3);"><i
+                        class="bi bi-file-earmark-pdf"></i> Download Resume</a>{% endif %}
+            </div>
+        </div>
+
+        <!-- Education -->
+        {% if education %}
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-mortarboard"></i> Education</div>
+            {% for edu in education %}
+            <div class="item-card d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="item-title">{{ edu.get_edu_type_display }}</div>
+                    <div class="item-sub">{{ edu.institution }}{% if edu.board_university %} &bull; {{
+                        edu.board_university }}{% endif %}</div>
+                    {% if edu.year_of_passing %}<div class="item-sub">Year: {{ edu.year_of_passing }}</div>{% endif %}
+                </div>
+                <div class="text-end">
+                    {% if edu.score %}<span class="cgpa-badge" style="font-size: 0.7rem; padding: 4px 12px;">{{
+                        edu.score }} {{ edu.get_score_type_display }}</span>{% endif %}
+                    {% if edu.is_verified %}<div class="verified-badge mt-1"><i class="bi bi-patch-check-fill"></i>
+                        Verified</div>{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Certifications -->
+        {% if certifications %}
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-award"></i> Certifications</div>
+            <div class="row g-2">
+                {% for c in certifications %}
+                <div class="col-md-6">
+                    <div class="item-card">
+                        <div class="item-title">{{ c.title }}</div>
+                        <div class="item-sub">{{ c.issuer }}{% if c.issued_date %} &bull; {{ c.issued_date|date:"M Y"
+                            }}{% endif %}</div>
+                        {% if c.is_verified %}<span class="verified-badge mt-1"><i class="bi bi-patch-check-fill"></i>
+                            Verified</span>{% endif %}
+                        {% if c.cert_url %}<a href="{{ c.cert_url }}" target="_blank" rel="noopener"
+                            class="d-block mt-1" style="font-size: 0.75rem; color: var(--accent);">View Certificate
+                            →</a>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Projects -->
+        {% if projects %}
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-code-slash"></i> Projects</div>
+            {% for p in projects %}
+            <div class="item-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="item-title">{{ p.title }}{% if p.is_verified %} <span class="verified-badge"><i
+                                    class="bi bi-patch-check-fill"></i> Verified</span>{% endif %}</div>
+                        {% if p.description %}<div class="item-sub mt-1">{{ p.description|truncatewords:40 }}</div>{%
+                        endif %}
+                    </div>
+                    {% if p.repo_url %}<a href="{{ p.repo_url }}" target="_blank" rel="noopener"
+                        class="btn btn-sm btn-outline-light rounded-pill" style="font-size: 0.7rem;">GitHub →</a>{%
+                    endif %}
+                </div>
+                {% if p.tech_stack %}
+                <div class="mt-2">
+                    {% for tech in p.tech_stack.split %}
+                    <span class="tag tag-tech">{{ tech }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Internships -->
+        {% if internships %}
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-briefcase"></i> Internships</div>
+            {% for i in internships %}
+            <div class="item-card">
+                <div class="item-title">{{ i.role }}</div>
+                <div class="item-sub">{{ i.organization }} &bull; {{ i.start_date|date:"M Y" }} — {% if i.end_date %}{{
+                    i.end_date|date:"M Y" }}{% else %}Present{% endif %}</div>
+                {% if i.technologies %}<div class="mt-1">{% for tech in i.technologies.split %}<span
+                        class="tag tag-tech">{{ tech }}</span>{% endfor %}</div>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Events & Achievements -->
+        {% if events %}
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-trophy"></i> Events &amp; Achievements</div>
+            {% for e in events %}
+            <div class="item-card d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="item-title">{{ e.name }}</div>
+                    <div class="item-sub">{{ e.organizer }}{% if e.event_date %} &bull; {{ e.event_date|date:"M d, Y"
+                        }}{% endif %}</div>
+                </div>
+                {% if e.position %}<span class="cgpa-badge" style="font-size: 0.7rem; padding: 4px 12px;">{{ e.position
+                    }}</span>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Courses -->
+        {% if courses %}
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-book"></i> Courses</div>
+            <div class="row g-2">
+                {% for c in courses %}
+                <div class="col-md-6">
+                    <div class="item-card">
+                        <div class="item-title">{{ c.title }}</div>
+                        <div class="item-sub">{{ c.platform }}{% if c.completion_percentage %} &bull; {{
+                            c.completion_percentage }}% Complete{% endif %}</div>
+                        {% if c.is_verified %}<span class="verified-badge mt-1"><i class="bi bi-patch-check-fill"></i>
+                            Verified</span>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Research -->
+        {% if research %}
+        <div class="section-card">
+            <div class="section-title"><i class="bi bi-journal-richtext"></i> Research</div>
+            {% for r in research %}
+            <div class="item-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="item-title">{{ r.title }}{% if r.is_verified %} <span class="verified-badge"><i
+                                    class="bi bi-patch-check-fill"></i> Verified</span>{% endif %}</div>
+                        <div class="item-sub">{{ r.get_outcome_display }}{% if r.publisher %} &bull; {{ r.publisher }}{%
+                            endif %}{% if r.published_date %} &bull; {{ r.published_date|date:"M Y" }}{% endif %}</div>
+                    </div>
+                    {% if r.publication_url %}<a href="{{ r.publication_url }}" target="_blank" rel="noopener"
+                        class="btn btn-sm btn-outline-light rounded-pill" style="font-size: 0.7rem;">Read →</a>{% endif
+                    %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="page-footer">
+            <i class="bi bi-shield-check"></i> Profile verified by Chalapathi Institute of Engineering &amp;
+            Technology<br>
+            <span style="color: #334155;">Generated by CIET ERP &bull; {{ profile.updated_at|date:"d M Y" }}</span>
+        </div>
+    </div>
+
+    <script>
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href).then(function () {
+                var btn = document.querySelector('[onclick="copyLink()"]');
+                btn.innerHTML = '<i class="bi bi-check2 me-1"></i> Copied!';
+                setTimeout(function () { btn.innerHTML = '<i class="bi bi-link-45deg me-1"></i> Copy Link'; }, 2000);
+            });
+        }
+    </script>
+</body>
+
+</html>

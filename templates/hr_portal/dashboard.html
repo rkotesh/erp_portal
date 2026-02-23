@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}HR Dashboard | Talent Acquisition{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">HR Recruitment Dashboard</h3>
+        <p class="text-muted smaller mb-0">Review student profiles shared by administration</p>
+    </div>
+</div>
+
+<div class="card-linkedin p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold mb-0">Shortlisted Students ({{ shared_students|length }})</h5>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle smaller">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Roll No</th>
+                    <th>Department</th>
+                    <th>CGPA</th>
+                    <th>Shared At</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in shared_students %}
+                <tr>
+                    <td>
+                        <div class="fw-bold text-primary">{{ entry.student.user.full_name }}</div>
+                        <div class="smaller text-muted">{{ entry.student.batch }}</div>
+                    </td>
+                    <td>{{ entry.student.roll_no }}</td>
+                    <td>{{ entry.student.department.name }}</td>
+                    <td><span class="badge bg-success-subtle text-success">{{ entry.student.cgpa }}</span></td>
+                    <td>{{ entry.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <a href="{% url 'hr-student-detail' entry.student.id %}"
+                            class="btn btn-li btn-li-primary btn-sm px-3">
+                            View Profile
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold text-maroon">Executive Overview</h2>
+        <p class="text-muted smaller">Academic Year 2025-26 | High-Level Insights</p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="kpi-container" id="summary-row" hx-get="/api/v1/reports/chairman/summary/" hx-trigger="load" hx-swap="none">
+    <!-- Will be populated by JS below -->
+    <div class="col-12 text-center py-5">
+        <div class="spinner-border text-maroon" role="status"></div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="glass-panel p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Demographic Distribution</h5>
+                <span class="badge bg-maroon-subtle text-maroon p-2">Live Feed</span>
+            </div>
+            <canvas id="deptChart" style="max-height: 400px;"></canvas>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-panel p-4 h-100">
+            <h5 class="fw-bold mb-4">Report Engine</h5>
+            <div class="d-grid gap-3 mb-4">
+                <button class="btn btn-ciet btn-ciet-primary py-3" hx-post="/api/v1/reports/request/"
+                    hx-vals='{"report_type": "Placement", "format": "PDF"}' hx-swap="none"
+                    onclick="alert('Intelligence Report (PDF) requested!')">
+                    <i class="bi bi-file-earmark-pdf me-2"></i> Placement Intelligence
+                </button>
+                <button class="btn btn-ciet glass-panel py-3 text-dark text-decoration-none border"
+                    hx-post="/api/v1/reports/request/" hx-vals='{"report_type": "Placement", "format": "Excel"}'
+                    hx-swap="none" onclick="alert('Institutional Data (Excel) requested!')">
+                    <i class="bi bi-file-earmark-spreadsheet me-2"></i> Financial Dataset
+                </button>
+            </div>
+            <hr class="opacity-10 my-4">
+            <h6 class="text-muted fw-bold smaller mb-3 uppercase">Chronological Log</h6>
+            <div hx-get="/api/v1/reports/list/" hx-trigger="load, every 30s" hx-target="#reports-list">
+                <div id="reports-list">
+                    <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-muted"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.body.addEventListener('htmx:afterRequest', function (evt) {
+        if (evt.detail.target.id === 'summary-row') {
+            const data = JSON.parse(evt.detail.xhr.responseText);
+            evt.detail.target.innerHTML = `
+                <div class="stat-card glass-panel">
+                    <i class="bi bi-people stat-icon-bg"></i>
+                    <div class="stat-label">Total Enrollment</div>
+                    <div class="stat-value">${data.total_students}</div>
+                    <div class="smaller text-success mt-2"><i class="bi bi-arrow-up-short"></i> 4.2% Growth</div>
+                </div>
+                <div class="stat-card glass-panel">
+                    <i class="bi bi-person-workspace stat-icon-bg"></i>
+                    <div class="stat-label">Academic Staff</div>
+                    <div class="stat-value">${data.total_faculty}</div>
+                    <div class="smaller text-muted mt-2">1:12 Faculty Ratio</div>
+                </div>
+                <div class="stat-card glass-panel">
+                    <i class="bi bi-building-check stat-icon-bg"></i>
+                    <div class="stat-label">Active Departments</div>
+                    <div class="stat-value">${data.active_departments}</div>
+                    <div class="smaller text-maroon mt-2">NAAC A++</div>
+                </div>
+                <div class="stat-card glass-panel">
+                    <i class="bi bi-graph-up-arrow stat-icon-bg"></i>
+                    <div class="stat-label">Aggregate Pass</div>
+                    <div class="stat-value">${data.pass_rate_percentage}%</div>
+                    <div class="smaller text-primary mt-2">Institutional Target: 92%</div>
+                </div>
+            `;
+        }
+
+        if (evt.detail.target.id === 'reports-list') {
+            const data = JSON.parse(evt.detail.xhr.responseText);
+            if (data.length === 0) {
+                evt.detail.target.innerHTML = '<div class="text-center p-4 text-muted smaller">No archival data available</div>';
+                return;
+            }
+            let html = '<div class="d-flex flex-column gap-2">';
+            data.slice(0, 5).forEach(r => {
+                html += `
+                    <div class="glass-panel p-3 d-flex justify-content-between align-items-center" style="background: rgba(255,255,255,0.4); border-radius: 12px;">
+                        <div>
+                            <div class="fw-bold smaller text-dark">${r.type}</div>
+                            <div class="text-muted" style="font-size: 10px;">${new Date(r.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                        </div>
+                        <a href="${r.url}" class="btn btn-sm btn-light border p-1 px-2 rounded-3 text-maroon"><i class="bi bi-download"></i></a>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            evt.detail.target.innerHTML = html;
+        }
+    });
+
+    // Chart logic
+    fetch('/api/v1/reports/chairman/students-by-dept/')
+        .then(res => res.json())
+        .then(data => {
+            const ctx = document.getElementById('deptChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(i => i.name),
+                    datasets: [{
+                        label: 'Departmental Strength',
+                        data: data.map(i => i.student_count),
+                        backgroundColor: '#800000',
+                        borderRadius: 8,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: false } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        });
+</script>
+{% endblock %}

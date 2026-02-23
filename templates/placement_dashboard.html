@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Placement Cell Dashboard</h1>
+        </div>
+    </div>
+
+    <!-- Analytics Row -->
+    <div class="row mb-4" hx-get="/api/v1/placements/applications/analytics/" hx-trigger="load" hx-target="#stats-row">
+        <div id="stats-row" class="row">
+            <div class="col-md-3">
+                <div class="card p-3 text-center">
+                    <p>Loading stats...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Active Drives -->
+        <div class="col-md-8 mb-4">
+            <div class="card p-4">
+                <h5 class="mb-3">Active Placement Drives</h5>
+                <div hx-get="/api/v1/placements/drives/" hx-trigger="load" hx-target="#drives-list">
+                    <div id="drives-list">
+                        <p class="text-muted">Loading drives...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Placements -->
+        <div class="col-md-4 mb-4">
+            <div class="card p-4 mb-4">
+                <h5 class="mb-3">Placement Reports</h5>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-primary" hx-post="/api/v1/reports/request/"
+                        hx-vals='{"report_type": "Placement", "format": "PDF"}' hx-swap="none">
+                        Generate PDF
+                    </button>
+                    <button class="btn btn-sm btn-success" hx-post="/api/v1/reports/request/"
+                        hx-vals='{"report_type": "Placement", "format": "Excel"}' hx-swap="none">
+                        Generate Excel
+                    </button>
+                </div>
+            </div>
+            <div class="card p-4">
+                <h5 class="mb-3">Recent Placed Students</h5>
+                <div hx-get="/api/v1/placements/applications/?status=Selected" hx-trigger="load"
+                    hx-target="#recent-placements">
+                    <div id="recent-placements">
+                        <p class="text-muted">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('htmx:afterRequest', function (evt) {
+        if (evt.detail.target.id === 'stats-row') {
+            const data = JSON.parse(evt.detail.xhr.responseText);
+            evt.detail.target.innerHTML = `
+                <div class="col-md-3">
+                    <div class="card p-3 text-center">
+                        <h6 class="text-muted">Students Placed</h6>
+                        <h3>${data.total_placed}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3 text-center">
+                        <h6 class="text-muted">Highest LPA</h6>
+                        <h3>${data.highest_package}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3 text-center">
+                        <h6 class="text-muted">Avg LPA</h6>
+                        <h3>${(data.avg_package || 0).toFixed(2)}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3 text-center">
+                        <h6 class="text-muted">Companies</h6>
+                        <h3>${data.total_companies}</h3>
+                    </div>
+                </div>
+            `;
+        }
+
+        if (evt.detail.target.id === 'drives-list') {
+            const data = JSON.parse(evt.detail.xhr.responseText);
+            if (data.length === 0) {
+                evt.detail.target.innerHTML = '<p class="text-muted">No active drives.</p>';
+                return;
+            }
+            let html = '<div class="table-responsive"><table class="table">';
+            html += '<thead><tr><th>Company</th><th>Job Title</th><th>Package</th><th>Status</th></tr></thead><tbody>';
+            data.forEach(d => {
+                html += `
+                    <tr>
+                        <td><strong>${d.company_name}</strong></td>
+                        <td>${d.job_title}</td>
+                        <td>${d.ctc_package} LPA</td>
+                        <td><span class="badge bg-info">${d.status}</span></td>
+                    </tr>
+                `;
+            });
+            html += '</tbody></table></div>';
+            evt.detail.target.innerHTML = html;
+        }
+
+        if (evt.detail.target.id === 'recent-placements') {
+            const data = JSON.parse(evt.detail.xhr.responseText);
+            if (data.length === 0) {
+                evt.detail.target.innerHTML = '<p class="text-muted">No recent placements.</p>';
+                return;
+            }
+            let html = '<ul class="list-group list-group-flush">';
+            data.forEach(a => {
+                html += `
+                    <li class="list-group-item">
+                        <strong>${a.student_roll_no}</strong> - ${a.company_name}
+                        <br><small class="text-success">${a.offered_package} LPA</small>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            evt.detail.target.innerHTML = html;
+        }
+    });
+</script>
+{% endblock %}

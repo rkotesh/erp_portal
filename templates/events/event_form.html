@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Event | CIET ERP{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-lg p-4" style="border-radius: 20px;">
+            <div class="text-center mb-4">
+                <i class="bi bi-calendar-plus fs-1 text-maroon mb-3"></i>
+                <h3 class="fw-bold">Create Campus Event</h3>
+                <p class="text-muted small">Announce new events to the college community</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="needs-validation">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Event Title</label>
+                    <input type="text" name="title" class="form-control rounded-li"
+                        placeholder="e.g. Annual Cultural Fest" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Description</label>
+                    <textarea name="description" class="form-control rounded-li" rows="4"
+                        placeholder="Event details and agenda..." required></textarea>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Date & Time</label>
+                        <input type="datetime-local" name="date" class="form-control rounded-li" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Location</label>
+                        <input type="text" name="location" class="form-control rounded-li"
+                            placeholder="e.g. Main Auditorium" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small">Cover Image (Optional)</label>
+                    <input type="file" name="image" class="form-control rounded-li" accept="image/*">
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-maroon py-2 rounded-li fw-bold shadow-sm">
+                        <i class="bi bi-send me-2"></i>Publish Event
+                    </button>
+                    <a href="{% url 'event-list' %}" class="btn btn-light py-2 rounded-li small text-muted">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Share Students with HR | CIET Admin{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg p-5" style="border-radius: 20px;">
+            <div class="text-center mb-5">
+                <i class="bi bi-person-plus-fill fs-1 text-maroon mb-3"></i>
+                <h3 class="fw-bold">Share Student Profile with HR</h3>
+                <p class="text-muted">Select a student portfolio to display on an HR user's dashboard</p>
+            </div>
+
+            <form method="post" class="needs-validation">
+                {% csrf_token %}
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-muted uppercase">Select Student</label>
+                        <select name="student_id" class="form-select rounded-li p-3" required>
+                            <option value="">Choose a student...</option>
+                            {% for student in students %}
+                            <option value="{{ student.id }}">{{ student.user.full_name }} ({{ student.roll_no }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-muted uppercase">Target HR Representative</label>
+                        <select name="hr_user_id" class="form-select rounded-li p-3" required>
+                            <option value="">Choose HR personnel...</option>
+                            {% for hr in hr_users %}
+                            <option value="{{ hr.id }}">{{ hr.full_name|default:hr.email }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-light rounded-li border-start border-maroon border-4 mb-4">
+                    <div class="d-flex gap-3">
+                        <i class="bi bi-info-circle-fill text-maroon fs-4"></i>
+                        <p class="mb-0 smaller text-muted">Sharing a profile will allow the target HR representative to
+                            view the student's full academic history and contact details on their personal dashboard.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-maroon py-3 rounded-li fw-bold shadow-sm">
+                        <i class="bi bi-share-fill me-2"></i>Share Profile to HR Dashboard
+                    </button>
+                    <a href="{% url 'dashboard' %}"
+                        class="btn btn-light py-2 rounded-li small text-muted text-center">Back to Home</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

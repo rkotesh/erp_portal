@@ -1,0 +1,42 @@
+CIET ERP - ACCESS CREDENTIALS
+==============================
+
+ADMIN PORTAL (Chairman/Director/Principal)
+------------------------------------------
+Email: chairman@college.edu
+Password: password123
+Role: Chairman (Accesses Admin Share, Events, Reports)
+
+HR PORTAL
+---------
+Email: hr@college.edu
+Password: password123
+Role: HR (Accesses Recruitment Dashboard / Shared Students)
+
+PLACEMENT CELL
+--------------
+Email: placement@college.edu
+Password: password123
+Role: Placement (Accesses Placement Drives and Applications)
+
+FACULTY / HOD / MENTOR
+----------------------
+HOD/Faculty Example:
+Email: faculty0@college.edu
+Password: password123
+Role: Faculty/HOD (Can create Events, manage departments)
+
+STUDENT & PARENT PORTAL
+-----------------------
+Both Students and Parents use the SAME credentials:
+Credential: Student's Registration Number (Roll No)
+Password: password123
+Role: 
+- Select "Student" for Student Portal
+- Select "Parent" for Parent Portal (Uses same ID/Password)
+
+Example Roll Number: 22CSE000 (Check StudentProfile for actual data)
+
+GITHUB REPOSITORY
+-----------------
+URL: https://github.com/rkotesh/college_website.git

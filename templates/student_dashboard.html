@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Student Portal</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Profile Summary -->
+        <div class="col-md-4 mb-4">
+            <div class="card p-4">
+                <h5 class="mb-3">My Profile</h5>
+                <div hx-get="/api/v1/students/profiles/me/" hx-trigger="load" hx-target="#profile-data">
+                    <div id="profile-data">
+                        <p class="text-muted">Loading profile...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance & Performance -->
+        <div class="col-md-8 mb-4">
+            <div class="card p-4">
+                <h5 class="mb-3">Performance & Attendance</h5>
+                <canvas id="performanceChart"></canvas>
+            </div>
+            <div class="card p-4 mt-4">
+                <h5 class="mb-3">Placement Timeline</h5>
+                <div hx-get="/api/v1/placements/applications/" hx-trigger="load" hx-target="#placement-timeline">
+                    <div id="placement-timeline">
+                        <p class="text-muted">Loading timeline...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('htmx:afterRequest', function (evt) {
+        if (evt.detail.target.id === 'profile-data') {
+            const data = JSON.parse(evt.detail.xhr.responseText);
+            evt.detail.target.innerHTML = `
+                <p><strong>Roll No:</strong> ${data.roll_no}</p>
+                <p><strong>Batch:</strong> ${data.batch}</p>
+                <p><strong>CGPA:</strong> <span class="badge bg-success">${data.cgpa}</span></p>
+                <p><strong>Status:</strong> ${data.is_public ? 'Public' : 'Private'}</p>
+            `;
+        }
+
+        if (evt.detail.target.id === 'placement-timeline') {
+            const data = JSON.parse(evt.detail.xhr.responseText);
+            if (data.length === 0) {
+                evt.detail.target.innerHTML = '<p class="text-muted">No applications yet.</p>';
+                return;
+            }
+            let html = '<div class="list-group">';
+            data.forEach(a => {
+                const badgeClass = a.status === 'Selected' ? 'bg-success' : (a.status === 'Rejected' ? 'bg-danger' : 'bg-info');
+                html += `
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${a.company_name} - ${a.drive_title}</h6>
+                            <span class="badge ${badgeClass}">${a.status}</span>
+                        </div>
+                        <small class="text-muted">Applied on ${new Date(a.created_at).toLocaleDateString()}</small>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            evt.detail.target.innerHTML = html;
+        }
+    });
+
+    // Mock chart for now
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+            datasets: [{
+                label: 'GPA',
+                data: [8.2, 8.5, 8.1, 8.4],
+                borderColor: '#3498db',
+                fill: false
+            }]
+        }
+    });
+</script>
+{% endblock %}

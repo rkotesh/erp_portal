@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% block title %}{{ profile.user.full_name }} — Student Profile{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header / Hero Section -->
+    <div class="card border-0 overflow-hidden mb-4 shadow-sm" style="border-radius: 16px;">
+        <div class="card-body p-0">
+            <div class="p-4 p-md-5 bg-primary text-white position-relative"
+                style="background: linear-gradient(135deg, #800000, #4a0000) !important;">
+                <div class="row align-items-center position-relative" style="z-index: 2;">
+                    <div class="col-auto">
+                        {% if profile.photo %}
+                        <img src="{{ profile.photo.url }}" class="rounded-circle border border-4 border-white shadow"
+                            width="120" height="120" style="object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center border border-4 border-white shadow"
+                            style="width:120px;height:120px;font-size: 3rem;font-weight: 700;">
+                            {{ profile.user.full_name|first|upper }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        <h1 class="display-5 fw-bold mb-1">{{ profile.user.full_name|default:profile.user.email }}</h1>
+                        <p class="fs-5 opacity-75 mb-2">{{ profile.roll_no }} &bull; {{ profile.department.name }}
+                            &bull; Batch {{ profile.batch }}</p>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-white text-primary px-3 py-2 fs-6">CGPA: {{ profile.cgpa }}</span>
+                            <span class="badge bg-success px-3 py-2 fs-6">Attendance: {{ att_pct }}%</span>
+                            {% if profile.is_deleted %}
+                            <span class="badge bg-danger px-3 py-2 fs-6">Deleted</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-auto mt-4 mt-md-0 d-flex gap-2">
+                        {% if profile.linkedin_url %}
+                        <a href="{{ profile.linkedin_url }}" target="_blank"
+                            class="btn btn-light btn-sm rounded-pill px-3">LinkedIn</a>
+                        {% endif %}
+                        {% if profile.github_url %}
+                        <a href="{{ profile.github_url }}" target="_blank"
+                            class="btn btn-light btn-sm rounded-pill px-3">GitHub</a>
+                        {% endif %}
+                        {% if profile.resume %}
+                        <a href="{{ profile.resume.url }}" target="_blank"
+                            class="btn btn-warning btn-sm rounded-pill px-3">View Resume</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Quick Stats & Personal -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Academic Summary</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Total Classes</span>
+                        <span class="fw-semibold">{{ total_classes }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Present</span>
+                        <span class="fw-semibold text-success">{{ present }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Absent</span>
+                        <span class="fw-semibold text-danger">{{ absent }}</span>
+                    </div>
+                    <div class="progress mb-4" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" id="profile-att-pb"
+                            aria-valuenow="{{ att_pct|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        <script>document.getElementById('profile-att-pb').style.width = '{{ att_pct|default:0 }}%';</script>
+                    </div>
+
+                    <h5 class="fw-bold mb-3 mt-4">Contact Information</h5>
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Official Email</small>
+                        <span class="fw-medium">{{ profile.user.email }}</span>
+                    </div>
+                    {% if profile.personal_email %}
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Personal Email</small>
+                        <span class="fw-medium">{{ profile.personal_email }}</span>
+                    </div>
+                    {% endif %}
+                    {% if profile.personal_phone %}
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Phone</small>
+                        <span class="fw-medium">{{ profile.personal_phone }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Education Background -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Education Background</h5>
+                    {% for edu in education %}
+                    <div class="mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge bg-primary-subtle text-primary mb-1">{{ edu.get_edu_type_display
+                                    }}</span>
+                                <h6 class="mb-0 fw-bold">{{ edu.institution }}</h6>
+                                <small class="text-muted">{{ edu.board_university }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold text-dark">{{ edu.score }}{{ edu.score_type }}</span><br>
+                                <small class="text-muted">{{ edu.year_of_passing }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small">No education details provided.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Tabs for Details -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                <div class="card-header bg-transparent border-0 p-4 pb-0">
+                    <ul class="nav nav-pills gap-2" id="studentDetailTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active rounded-pill px-4" id="marks-tab" data-bs-toggle="tab"
+                                data-bs-target="#marks" type="button" role="tab">Academics</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill px-4" id="projects-tab" data-bs-toggle="tab"
+                                data-bs-target="#projects" type="button" role="tab">Projects</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill px-4" id="certs-tab" data-bs-toggle="tab"
+                                data-bs-target="#certs" type="button" role="tab">Certifications</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill px-4" id="other-tab" data-bs-toggle="tab"
+                                data-bs-target="#other" type="button" role="tab">Others</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body p-4">
+                    <div class="tab-content" id="studentDetailTabsContent">
+
+                        <!-- Academics Tab -->
+                        <div class="tab-pane fade show active" id="marks" role="tabpanel">
+                            <h6 class="fw-bold mb-3">Subject Performance</h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th>Subject</th>
+                                            <th>Internal</th>
+                                            <th>External</th>
+                                            <th>Total</th>
+                                            <th>Grade</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for m in marks %}
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">{{ m.subject.name }}</div>
+                                                <small class="text-muted">{{ m.subject.code }}</small>
+                                            </td>
+                                            <td>{{ m.internal }}</td>
+                                            <td>{{ m.external }}</td>
+                                            <td><span class="fw-bold">{{ m.total }}</span></td>
+                                            <td><span class="badge bg-info">{{ m.grade }}</span></td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4 text-muted">No marks recorded yet.
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Projects Tab -->
+                        <div class="tab-pane fade" id="projects" role="tabpanel">
+                            {% for p in projects %}
+                            <div class="p-3 mb-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h6 class="fw-bold mb-1 text-primary">{{ p.title }}</h6>
+                                    <span
+                                        class="badge {% if p.project_type == 'college' %}bg-success{% else %}bg-secondary{% endif %} text-uppercase">{{
+                                        p.project_type }}</span>
+                                </div>
+                                <p class="small mb-2">{{ p.description }}</p>
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    {% for tech in p.tech_stack.split %}
+                                    <span class="badge bg-light text-dark border">{{ tech }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% if p.repo_url %}
+                                <a href="{{ p.repo_url }}" target="_blank" class="btn btn-sm btn-outline-dark">View
+                                    Repository</a>
+                                {% endif %}
+                            </div>
+                            {% empty %}
+                            <p class="text-center py-4 text-muted">No projects listed.</p>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Certifications Tab -->
+                        <div class="tab-pane fade" id="certs" role="tabpanel">
+                            <div class="row g-3">
+                                {% for c in certifications %}
+                                <div class="col-md-6">
+                                    <div class="p-3 border rounded h-100">
+                                        <h6 class="fw-bold mb-1">{{ c.title }}</h6>
+                                        <small class="text-muted d-block mb-2">{{ c.issuer }} &bull; {{ c.issued_date
+                                            }}</small>
+                                        {% if c.cert_url %}
+                                        <a href="{{ c.cert_url }}" target="_blank" class="btn btn-sm btn-primary">Verify
+                                            Link</a>
+                                        {% elif c.file %}
+                                        <a href="{{ c.file.url }}" target="_blank"
+                                            class="btn btn-sm btn-outline-primary">View Certificate</a>
+                                        {% endif %}
+                                        {% if c.is_verified %}
+                                        <span class="badge bg-success float-end mt-1"><i class="bi bi-check-circle"></i>
+                                            Verified</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="col-12 text-center py-4 text-muted">No certifications recorded.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Others Tab -->
+                        <div class="tab-pane fade" id="other" role="tabpanel">
+                            <div class="mb-4">
+                                <h6 class="fw-bold border-bottom pb-2 mb-3">Internships</h6>
+                                {% for i in internships %}
+                                <div class="mb-3">
+                                    <h6 class="mb-0 fw-bold">{{ i.role }}</h6>
+                                    <p class="mb-0 text-primary">{{ i.organization }}</p>
+                                    <small class="text-muted">{{ i.start_date }} - {% if i.end_date %}{{ i.end_date }}{%                     else %}Present{% endif %}</small>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted small">No internships recorded.</p>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mb-4">
+                                <h6 class="fw-bold border-bottom pb-2 mb-3">Research & Publications</h6>
+                                {% for r in research %}
+                                <div class="mb-3">
+                                    <h6 class="mb-0 fw-bold">{{ r.title }}</h6>
+                                    <small class="text-muted">{{ r.get_outcome_display }} &bull; {{ r.publisher
+                                        }}</small>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted small">No research activity recorded.</p>
+                                {% endfor %}
+                            </div>
+
+                            <div>
+                                <h6 class="fw-bold border-bottom pb-2 mb-3">External Courses</h6>
+                                {% for cour in courses %}
+                                <div class="mb-2 d-flex justify-content-between">
+                                    <span>{{ cour.title }} ({{ cour.platform }})</span>
+                                    <span class="badge bg-light text-dark">{{ cour.completion_percentage }}%</span>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted small">No external courses recorded.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .nav-pills .nav-link {
+        color: #64748b;
+        background-color: #f1f5f9;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: #1e40af;
+        color: white;
+        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
+    }
+</style>
+{% endblock %}
