@@ -6,12 +6,12 @@
     <!-- Header / Hero Section -->
     <div class="card border-0 overflow-hidden mb-4 shadow-sm" style="border-radius: 16px;">
         <div class="card-body p-0">
-            <div class="p-4 p-md-5 bg-primary text-white position-relative"
-                style="background: linear-gradient(135deg, #800000, #4a0000) !important;">
+            <div class="p-4 p-md-5 text-dark position-relative"
+                style="background: linear-gradient(135deg, #FDF9D4, #FFFFFF) !important; border-bottom: 1px solid #e2e8f0;">
                 <div class="row align-items-center position-relative" style="z-index: 2;">
                     <div class="col-auto">
                         {% if profile.photo %}
-                        <img src="{{ profile.photo.url }}" class="rounded-circle border border-4 border-white shadow"
+                        <img src="{{ profile.photo.url }}" class="rounded-circle border border-4 border-white shadow-sm"
                             width="120" height="120" style="object-fit: cover;">
                         {% else %}
                         <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center border border-4 border-white shadow"
@@ -25,8 +25,7 @@
                         <p class="fs-5 opacity-75 mb-2">{{ profile.roll_no }} &bull; {{ profile.department.name }}
                             &bull; Batch {{ profile.batch }}</p>
                         <div class="d-flex gap-2">
-                            <span class="badge bg-white text-primary px-3 py-2 fs-6">CGPA: {{ profile.cgpa }}</span>
-                            <span class="badge bg-success px-3 py-2 fs-6">Attendance: {{ att_pct }}%</span>
+                            <span class="badge bg-light text-dark border px-3 py-2 fs-6">CGPA: {{ profile.cgpa }}</span>
                             {% if profile.is_deleted %}
                             <span class="badge bg-danger px-3 py-2 fs-6">Deleted</span>
                             {% endif %}
@@ -57,22 +56,9 @@
             <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-3">Academic Summary</h5>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Total Classes</span>
-                        <span class="fw-semibold">{{ total_classes }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Present</span>
-                        <span class="fw-semibold text-success">{{ present }}</span>
-                    </div>
                     <div class="d-flex justify-content-between mb-3">
-                        <span class="text-muted">Absent</span>
-                        <span class="fw-semibold text-danger">{{ absent }}</span>
-                    </div>
-                    <div class="progress mb-4" style="height: 8px;">
-                        <div class="progress-bar bg-success" role="progressbar" id="profile-att-pb"
-                            aria-valuenow="{{ att_pct|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
-                        <script>document.getElementById('profile-att-pb').style.width = '{{ att_pct|default:0 }}%';</script>
+                        <span class="text-muted">Current CGPA</span>
+                        <span class="fw-semibold text-success">{{ profile.cgpa }}</span>
                     </div>
 
                     <h5 class="fw-bold mb-3 mt-4">Contact Information</h5>
@@ -105,6 +91,11 @@
                             <div>
                                 <span class="badge bg-primary-subtle text-primary mb-1">{{ edu.get_edu_type_display
                                     }}</span>
+                                {% if edu.is_verified %}
+                                <span class="badge bg-success mb-1">Verified</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark mb-1">Pending</span>
+                                {% endif %}
                                 <h6 class="mb-0 fw-bold">{{ edu.institution }}</h6>
                                 <small class="text-muted">{{ edu.board_university }}</small>
                             </div>
@@ -113,6 +104,17 @@
                                 <small class="text-muted">{{ edu.year_of_passing }}</small>
                             </div>
                         </div>
+                        {% if not edu.is_verified %}
+                        {% if request.user.role == 'Chairman' or request.user.role == 'Director' or request.user.role == 'Principal' or request.user.role == 'HOD' or request.user.role == 'Faculty' %}
+                        <form method="post" class="mt-2 d-flex gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="verify_education">
+                            <input type="hidden" name="item_id" value="{{ edu.id }}">
+                            <button class="btn btn-sm btn-success" name="decision" value="approve">Approve</button>
+                            <button class="btn btn-sm btn-outline-danger" name="decision" value="reject">Reject</button>
+                        </form>
+                        {% endif %}
+                        {% endif %}
                     </div>
                     {% empty %}
                     <p class="text-muted small">No education details provided.</p>
@@ -182,6 +184,57 @@
                                     </tbody>
                                 </table>
                             </div>
+
+                            <h6 class="fw-bold mt-4 mb-3">Student Submitted Semester Results</h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th>Semester</th>
+                                            <th>Exam</th>
+                                            <th>Subject</th>
+                                            <th>Score</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for r in semester_results %}
+                                        <tr>
+                                            <td>{{ r.semester }}</td>
+                                            <td>{{ r.exam_name }}</td>
+                                            <td>{{ r.subject_name }}{% if r.subject_code %} ({{ r.subject_code }}){% endif %}</td>
+                                            <td>{{ r.score }}/{{ r.max_score }}</td>
+                                            <td>
+                                                {% if r.is_verified %}
+                                                <span class="badge bg-success">Verified</span>
+                                                {% else %}
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if r.proof %}
+                                                <a href="{{ r.proof.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Proof</a>
+                                                {% endif %}
+                                                {% if not r.is_verified %}
+                                                {% if request.user.role == 'Chairman' or request.user.role == 'Director' or request.user.role == 'Principal' or request.user.role == 'HOD' or request.user.role == 'Faculty' %}
+                                                <form method="post" class="d-inline-flex gap-2">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="verify_semester_result">
+                                                    <input type="hidden" name="item_id" value="{{ r.id }}">
+                                                    <button class="btn btn-sm btn-success" name="decision" value="approve">Approve</button>
+                                                    <button class="btn btn-sm btn-outline-danger" name="decision" value="reject">Reject</button>
+                                                </form>
+                                                {% endif %}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr><td colspan="6" class="text-center py-3 text-muted">No semester results submitted.</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
 
                         <!-- Projects Tab -->
@@ -229,6 +282,14 @@
                                         {% if c.is_verified %}
                                         <span class="badge bg-success float-end mt-1"><i class="bi bi-check-circle"></i>
                                             Verified</span>
+                                        {% elif request.user.role == 'Chairman' or request.user.role == 'Director' or request.user.role == 'Principal' or request.user.role == 'HOD' or request.user.role == 'Faculty' %}
+                                        <form method="post" class="d-flex gap-2 mt-2">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="verify_certification">
+                                            <input type="hidden" name="item_id" value="{{ c.id }}">
+                                            <button class="btn btn-sm btn-success" name="decision" value="approve">Approve</button>
+                                            <button class="btn btn-sm btn-outline-danger" name="decision" value="reject">Reject</button>
+                                        </form>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -246,7 +307,8 @@
                                 <div class="mb-3">
                                     <h6 class="mb-0 fw-bold">{{ i.role }}</h6>
                                     <p class="mb-0 text-primary">{{ i.organization }}</p>
-                                    <small class="text-muted">{{ i.start_date }} - {% if i.end_date %}{{ i.end_date }}{%                     else %}Present{% endif %}</small>
+                                    <small class="text-muted">{{ i.start_date }} - {% if i.end_date %}{{ i.end_date }}{%
+                                        else %}Present{% endif %}</small>
                                 </div>
                                 {% empty %}
                                 <p class="text-muted small">No internships recorded.</p>
@@ -295,9 +357,9 @@
     }
 
     .nav-pills .nav-link.active {
-        background-color: #1e40af;
-        color: white;
-        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
+        background-color: #FDF9D4;
+        color: #4a4a4a;
+        box-shadow: 0 4px 12px rgba(253, 249, 212, 0.3);
     }
 </style>
 {% endblock %}

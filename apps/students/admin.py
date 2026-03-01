@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from apps.students.models import (
     StudentProfile, EducationBackground, Certification,
-    Project, Internship, Event, Course, Research
+    Project, Internship, Event, Course, Research, SemesterResult
 )
 
 
@@ -79,3 +79,13 @@ class ResearchAdmin(admin.ModelAdmin):
     list_display = ('student', 'title', 'research_type', 'outcome', 'publisher', 'published_date', 'is_verified')
     list_filter = ('research_type', 'outcome', 'is_verified')
     search_fields = ('student__roll_no', 'student__user__full_name', 'title')
+
+
+@admin.register(SemesterResult)
+class SemesterResultAdmin(admin.ModelAdmin):
+    list_display = (
+        'student', 'semester', 'exam_name', 'subject_code', 'subject_name',
+        'score', 'max_score', 'grade', 'is_verified'
+    )
+    list_filter = ('semester', 'is_verified', 'exam_name')
+    search_fields = ('student__roll_no', 'student__user__full_name', 'subject_name', 'subject_code')

@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+{{ block.super }}
+<style>
+    body {
+        padding-top: 0 !important;
+    }
+</style>
+{% endblock %}
+
+{% block main_layout %}
+<div class="min-h-screen bg-[#F8FAFC] font-['Inter']">
+    <header class="h-[72px] bg-white border-b border-slate-200 px-8 flex items-center">
+        <a href="/" class="flex items-center gap-3 no-underline">
+            <img src="{% static 'images/ciet_logo.svg' %}" alt="CIET Logo" class="w-10 h-10 shadow-lg">
+            <span class="text-slate-900 font-bold text-lg leading-tight tracking-tight">CIET Portal</span>
+        </a>
+    </header>
+
+    <div class="h-[calc(100vh-72px)] flex overflow-hidden">
+    <!-- PREMIUM STUDENT SIDEBAR -->
+    <aside
+        class="w-[280px] bg-white border-r border-slate-200 flex flex-col h-full z-50 transition-all duration-300">
+        <div class="p-8 pb-4">
+            <span class="text-slate-500 text-[10px] uppercase tracking-[1px] font-semibold">Student Edition</span>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
+            <p class="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 mt-6">Main Dashboard</p>
+            <a href="{% url 'student-portal' %}"
+                class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {% if request.resolver_match.url_name == 'student-portal' %}bg-[#800000]/5 text-[#800000]{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %} group no-underline">
+                <i data-lucide="layout-dashboard"
+                    class="w-5 h-5 {% if request.resolver_match.url_name == 'student-portal' %}text-[#800000]{% else %}group-hover:text-[#800000]{% endif %}"></i>
+                Overview
+            </a>
+            <a href="{% url 'student-academics' %}"
+                class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {% if request.resolver_match.url_name == 'student-academics' %}bg-[#800000]/5 text-[#800000]{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %} group no-underline">
+                <i data-lucide="graduation-cap"
+                    class="w-5 h-5 {% if request.resolver_match.url_name == 'student-academics' %}text-[#800000]{% else %}group-hover:text-[#800000]{% endif %}"></i>
+                Academics
+            </a>
+
+            <p class="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 mt-8">Career & Growth</p>
+            <a href="{% url 'student-projects' %}"
+                class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {% if request.resolver_match.url_name == 'student-projects' %}bg-[#800000]/5 text-[#800000]{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %} group no-underline">
+                <i data-lucide="folder-kanban"
+                    class="w-5 h-5 {% if request.resolver_match.url_name == 'student-projects' %}text-[#800000]{% else %}group-hover:text-[#800000]{% endif %}"></i>
+                Portfolio Projects
+            </a>
+            <a href="{% url 'student-certifications' %}"
+                class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {% if request.resolver_match.url_name == 'student-certifications' %}bg-[#800000]/5 text-[#800000]{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %} group no-underline">
+                <i data-lucide="award"
+                    class="w-5 h-5 {% if request.resolver_match.url_name == 'student-certifications' %}text-[#800000]{% else %}group-hover:text-[#800000]{% endif %}"></i>
+                Certifications
+            </a>
+            <p class="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 mt-8">System</p>
+            <a href="{% url 'notification-list' %}"
+                class="flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all {% if 'notifications' in request.path %}bg-[#800000]/5 text-[#800000]{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %} group no-underline">
+                <i data-lucide="bell"
+                    class="w-5 h-5 {% if 'notifications' in request.path %}text-[#800000]{% else %}group-hover:text-[#800000]{% endif %}"></i>
+                Notifications
+            </a>
+        </nav>
+
+        <div class="p-6 mt-auto">
+            <a href="{% url 'logout' %}"
+                class="mt-4 flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 rounded-xl transition-all hover:bg-red-50 no-underline">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+                Sign Out
+            </a>
+        </div>
+    </aside>
+
+    <!-- CONTENT WRAPPER -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden">
+        <!-- GLOBAL PORTAL HEADER -->
+        <header
+            class="h-[80px] bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-4">
+                {% block portal_header_left %}
+                <h1 class="text-xl font-bold text-slate-900">{% block portal_title %}Student Portal{% endblock %}</h1>
+                {% endblock %}
+            </div>
+
+            <div class="flex items-center gap-6">
+                <!-- Notifications -->
+                <a href="{% url 'notification-list' %}"
+                    class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-[#800000] hover:bg-slate-100 transition-all relative no-underline">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    {% if unread_notifications_count > 0 %}
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+                    {% endif %}
+                </a>
+
+                <div class="flex items-center gap-4 pl-6 border-l border-slate-200">
+                    <a href="{% url 'student-profile-edit' %}" class="text-right hidden sm:block no-underline">
+                        <p class="text-sm font-bold text-slate-900 leading-none mb-1">{{ profile.user.full_name }}</p>
+                        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-tighter">{{ profile.department.code }}</p>
+                    </a>
+                    <div
+                        class="w-10 h-10 rounded-xl bg-[#800000] flex items-center justify-center text-white font-bold ring-4 ring-slate-50 overflow-hidden">
+                        {% if profile.photo %}
+                        <img src="{{ profile.photo.url }}" class="w-full h-full object-cover" alt="Profile">
+                        {% else %}
+                        {{ profile.user.full_name|first }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- PAGE CONTENT -->
+        <main class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+            <div class="max-w-[1400px] mx-auto">
+                {% if messages %}
+                <div class="space-y-3 mb-6">
+                    {% for message in messages %}
+                    <div class="px-4 py-3 rounded-xl text-sm font-semibold {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-100{% elif message.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-100{% else %}bg-slate-50 text-slate-700 border border-slate-100{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% block portal_content %}{% endblock %}
+
+                <footer class="mt-10 pt-6 border-t border-slate-200 text-center">
+                    <p class="text-xs font-semibold text-slate-500 mb-1">Chalapathi Institute of Engineering and Technology</p>
+                    <p class="text-[11px] text-slate-400 mb-0">&copy; 2026 CIET ERP. All Rights Reserved.</p>
+                </footer>
+            </div>
+        </main>
+    </div>
+</div>
+</div>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #E2E8F0;
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #CBD5E1;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .portal-fade-in {
+        animation: fadeIn 0.4s ease-out forwards;
+    }
+</style>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

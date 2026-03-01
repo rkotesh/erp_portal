@@ -33,47 +33,16 @@ class RoleAuthenticationForm(AuthenticationForm):
         
         return cleaned_data
 
-class UserRegistrationForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': '••••••••'}), validators=[validate_password])
-    password_confirm = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': '••••••••'}))
-    
-    # Exclude admin-managed roles from self-registration
-    EXCLUDED_ROLES = ['HR', 'Chairman', 'Director', 'Principal']
-    REGISTRATION_ROLES = [(k, v) for k, v in User.Role.choices if k not in EXCLUDED_ROLES]
-    role = forms.ChoiceField(choices=REGISTRATION_ROLES, widget=forms.Select(attrs={'class': 'form-select'}))
-    
-    class Meta:
-        model = User
-        fields = ['full_name', 'email', 'phone', 'role', 'department']
-        widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Full Name'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'name@college.edu'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+1234567890'}),
-            'department': forms.Select(attrs={'class': 'form-select'}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['department'].queryset = Department.objects.all().order_by('code')
-        self.fields['department'].required = False
-        self.fields['department'].empty_label = 'Select Your Department'
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("A user with this email already exists.")
-        return email
-
-    def clean_password_confirm(self):
-        password = self.cleaned_data.get('password')
-        password_confirm = self.cleaned_data.get('password_confirm')
-        if password and password_confirm and password != password_confirm:
-            raise forms.ValidationError("Passwords do not match.")
-        return password_confirm
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password"])
-        if commit:
-            user.save()
-        return user
+class VerifyOTPForm(forms.Form):
+    otp = forms.CharField(
+        max_length=6, 
+        min_length=6, 
+        widget=forms.TextInput(attrs={
+            'class': 'input-glass text-center', 
+            'placeholder': '000000',
+            'style': 'font-size: 2rem; letter-spacing: 0.5rem; font-weight: bold;',
+            'pattern': '[0-9]*',
+            'inputmode': 'numeric',
+            'autocomplete': 'one-time-code'
+        })
+    )

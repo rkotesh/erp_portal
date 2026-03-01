@@ -10,9 +10,10 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db import transaction
+from django.utils import timezone
 from apps.accounts.models import User
 from apps.academics.models import Department
-from apps.students.models import StudentProfile
+from apps.students.models import StudentProfile, SemesterResult
 
 
 VALID_ROLES = [r[0] for r in User.Role.choices]
@@ -31,6 +32,15 @@ def bulk_upload_view(request):
     if request.method == 'POST':
         upload_type = request.POST.get('upload_type', '')
         csv_file = request.FILES.get('csv_file')
+        pdf_file = request.FILES.get('pdf_file')
+
+        if upload_type == 'semester_results_pdf':
+            result = _import_semester_result_pdf(request, pdf_file)
+            if result['created']:
+                messages.success(request, result['message'])
+            else:
+                messages.error(request, result['message'])
+            return render(request, 'admin/bulk_upload.html', context)
 
         if not csv_file:
             messages.error(request, 'Please select a CSV file.')
@@ -56,6 +66,8 @@ def bulk_upload_view(request):
             result = _import_users(rows)
         elif upload_type == 'students':
             result = _import_students(rows)
+        elif upload_type == 'semester_results_csv':
+            result = _import_semester_results(rows, request.user)
         else:
             messages.error(request, 'Invalid upload type.')
             return render(request, 'admin/bulk_upload.html', context)
@@ -139,6 +151,112 @@ def _import_users(rows):
             result['skipped'] += 1
 
     return result
+
+
+def _import_semester_results(rows, verifier):
+    """
+    Import semester results for existing students.
+    Expected CSV columns:
+      roll_no, semester, exam_name, subject_code, subject_name, score, max_score, grade
+    """
+    result = {'created': 0, 'skipped': 0, 'errors': []}
+    required = {'roll_no', 'semester', 'subject_name', 'score'}
+
+    headers = set(rows[0].keys()) if rows else set()
+    missing = required - headers
+    if missing:
+        result['errors'].append(f"Missing required columns: {', '.join(missing)}")
+        return result
+
+    for i, row in enumerate(rows, start=2):
+        roll_no = row.get('roll_no', '').strip().upper()
+        semester = row.get('semester', '').strip()
+        subject_name = row.get('subject_name', '').strip()
+        if not roll_no or not semester or not subject_name:
+            result['errors'].append(f"Row {i}: Missing roll_no, semester, or subject_name.")
+            result['skipped'] += 1
+            continue
+
+        student = StudentProfile.objects.filter(roll_no__iexact=roll_no).first()
+        if not student:
+            result['errors'].append(f"Row {i}: Student roll_no '{roll_no}' not found.")
+            result['skipped'] += 1
+            continue
+
+        try:
+            score = float(row.get('score', 0))
+            max_score = float(row.get('max_score', 100) or 100)
+        except ValueError:
+            result['errors'].append(f"Row {i}: score/max_score must be numeric.")
+            result['skipped'] += 1
+            continue
+
+        obj, created = SemesterResult.objects.update_or_create(
+            student=student,
+            semester=int(semester),
+            exam_name=(row.get('exam_name', 'Semester Exam').strip() or 'Semester Exam'),
+            subject_code=row.get('subject_code', '').strip(),
+            subject_name=subject_name,
+            defaults={
+                'score': score,
+                'max_score': max_score,
+                'grade': row.get('grade', '').strip(),
+                'is_verified': True,
+                'verified_by': verifier,
+                'verified_at': timezone.now(),
+                'rejection_reason': '',
+            }
+        )
+        result['created'] += 1 if created else 0
+
+    return result
+
+
+def _import_semester_result_pdf(request, pdf_file):
+    """
+    Create/update one semester result using form fields and an uploaded PDF proof.
+    """
+    if not pdf_file:
+        return {'created': False, 'message': 'Please upload a PDF file.'}
+    if not pdf_file.name.lower().endswith('.pdf'):
+        return {'created': False, 'message': 'Only PDF format is accepted for this upload.'}
+
+    roll_no = request.POST.get('roll_no', '').strip().upper()
+    semester = request.POST.get('semester', '').strip()
+    subject_name = request.POST.get('subject_name', '').strip()
+    score = request.POST.get('score', '').strip()
+    if not (roll_no and semester and subject_name and score):
+        return {'created': False, 'message': 'roll_no, semester, subject_name, and score are required.'}
+
+    student = StudentProfile.objects.filter(roll_no__iexact=roll_no).first()
+    if not student:
+        return {'created': False, 'message': f"Student roll_no '{roll_no}' not found."}
+
+    try:
+        score_val = float(score)
+        max_score_val = float(request.POST.get('max_score', 100) or 100)
+    except ValueError:
+        return {'created': False, 'message': 'Score and max score must be numeric.'}
+
+    obj, _ = SemesterResult.objects.update_or_create(
+        student=student,
+        semester=int(semester),
+        exam_name=(request.POST.get('exam_name', 'Semester Exam').strip() or 'Semester Exam'),
+        subject_code=request.POST.get('subject_code', '').strip(),
+        subject_name=subject_name,
+        defaults={
+            'score': score_val,
+            'max_score': max_score_val,
+            'grade': request.POST.get('grade', '').strip(),
+            'is_verified': True,
+            'verified_by': request.user,
+            'verified_at': timezone.now(),
+            'rejection_reason': '',
+        }
+    )
+    obj.proof = pdf_file
+    obj.save(update_fields=['proof', 'updated_at'])
+    return {'created': True, 'message': f"Semester result uploaded for {roll_no} ({subject_name})."}
 
 
 def _import_students(rows):
@@ -225,6 +343,10 @@ def download_sample_csv(request):
         writer.writerow(['Ravi Kumar', 'ravi@ciet.edu.in', '9876543210', '22B01A0501', '2022-2026', 'CSE', 'Welcome@123'])
         writer.writerow(['Priya Sharma', 'priya@ciet.edu.in', '9876543211', '22B01A0502', '2022-2026', 'CSE', 'Welcome@123'])
         writer.writerow(['Kiran Reddy', 'kiran@ciet.edu.in', '9876543212', '22B01A0301', '2022-2026', 'ECE', 'Welcome@123'])
+    elif upload_type == 'semester_results':
+        writer.writerow(['roll_no', 'semester', 'exam_name', 'subject_code', 'subject_name', 'score', 'max_score', 'grade'])
+        writer.writerow(['22B01A0501', '4', 'Semester Exam', 'CS401', 'Compiler Design', '78', '100', 'A'])
+        writer.writerow(['22B01A0502', '4', 'Semester Exam', 'CS402', 'Operating Systems', '83', '100', 'A+'])
     else:
         writer.writerow(['full_name', 'email', 'phone', 'role', 'department_code', 'password'])
         writer.writerow(['Dr. Ramesh', 'ramesh@ciet.edu.in', '9876543213', 'Faculty', 'CSE', 'Faculty@123'])

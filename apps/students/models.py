@@ -18,6 +18,8 @@ class StudentProfile(BaseModel):
     # Extended personal contact
     personal_email = models.EmailField(blank=True, default='')
     personal_phone = models.CharField(max_length=15, blank=True, default='')
+    personal_email_verified = models.BooleanField(default=False)
+    personal_phone_verified = models.BooleanField(default=False)
 
     # Social / Professional links (only shown if filled)
     linkedin_url   = models.URLField(blank=True, default='')
@@ -101,6 +103,7 @@ class Project(BaseModel):
     title        = models.CharField(max_length=300)
     description  = models.TextField()
     tech_stack   = models.CharField(max_length=500)
+    cover_image  = models.ImageField(upload_to='project_covers/', blank=True, null=True)
     is_group     = models.BooleanField(default=False)
     team_size    = models.PositiveIntegerField(default=1)
     repo_url     = models.URLField(blank=True, default='')
@@ -190,3 +193,30 @@ class Research(BaseModel):
 
     def __str__(self):
         return f"{self.student.roll_no} - {self.title}"
+
+
+class SemesterResult(BaseModel):
+    """Student-submitted semester score entries verified by exam cell."""
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='semester_results')
+    semester = models.PositiveSmallIntegerField()
+    exam_name = models.CharField(max_length=100, default='Semester Exam')
+    subject_code = models.CharField(max_length=20, blank=True, default='')
+    subject_name = models.CharField(max_length=200)
+    score = models.DecimalField(max_digits=6, decimal_places=2)
+    max_score = models.DecimalField(max_digits=6, decimal_places=2, default=100.0)
+    grade = models.CharField(max_length=5, blank=True, default='')
+    proof = models.FileField(upload_to='semester_results/', blank=True, null=True)
+    is_verified = models.BooleanField(default=False)
+    verified_by = models.ForeignKey(
+        'accounts.User', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='semester_result_verifications'
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
+    rejection_reason = models.TextField(blank=True, default='')
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('student', 'semester', 'exam_name', 'subject_code', 'subject_name')
+
+    def __str__(self):
+        return f"{self.student.roll_no} - Sem {self.semester} - {self.subject_name}"

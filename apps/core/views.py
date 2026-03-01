@@ -25,8 +25,8 @@ class DashboardView(View):
             if request.session.get('is_parent_login'):
                 return redirect('parent-portal')
             return redirect('student-portal')
-        # Chairman, Director, Principal -> Django Admin Panel
-        if role in ['Chairman', 'Director', 'Principal']:
+        # Chairman, Director, Principal, Admin -> Django admin panel
+        if role in ['Chairman', 'Director', 'Principal', 'Admin']:
             return redirect('/admin/')
         if role in ['Faculty', 'Mentor', 'HOD']:
             role_redirect = {'HOD': 'hod-dashboard', 'Mentor': 'mentor-dashboard', 'Faculty': 'faculty-dashboard'}

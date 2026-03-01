@@ -1,19 +1,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
+    /* Premium Palette - Slate/Blue Focus */
+    --brand-primary: #0062FF;
+    --brand-secondary: #00D1FF;
+    --brand-dark: #0F172A;
+    --brand-light: #F8FAFC;
+
+    /* CIET Branding - Integrated */
     --ciet-maroon: #800000;
-    --ciet-maroon-light: #a00000;
-    --ciet-gold: #D4AF37;
-    --ciet-blue: #2A5C8E;
-    --ciet-bg: #f8f9fa;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
+    --ciet-gold: #FFD700;
+
+    /* Layout Tokens */
     --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.4);
-    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --glass-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.08);
+
     --sidebar-width: 280px;
-    --navbar-height: 70px;
-    --radius-lg: 20px;
+    --navbar-height: 72px;
+    --radius-xl: 24px;
+    --radius-lg: 16px;
     --radius-md: 12px;
 }
 
@@ -29,16 +35,25 @@ body {
 /* --- GLASS MORPHISM SYSTEM --- */
 .glass-panel {
     background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
     border-radius: var(--radius-lg);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-panel:hover {
-    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 48px 0 rgba(15, 23, 42, 0.12);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.glass-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
 }
 
 /* Top Navbar Overhaul */
@@ -86,7 +101,7 @@ body {
 .nav-logo-title {
     font-size: 20px;
     font-weight: 700;
-    color: var(--ciet-maroon);
+    color: #4a4a4a;
     line-height: 1;
 }
 
@@ -123,8 +138,8 @@ body {
 
 .nav-link-item:hover,
 .nav-link-item.active {
-    color: var(--ciet-maroon);
-    background: rgba(128, 0, 0, 0.05);
+    color: #4a4a4a;
+    background: rgba(253, 249, 212, 0.6);
 }
 
 /* Beautiful Sidebar */
@@ -171,9 +186,9 @@ body {
 }
 
 .sidebar-nav-item.active {
-    background: var(--ciet-maroon);
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(128, 0, 0, 0.2);
+    background: #FDF9D4;
+    color: #4a4a4a;
+    box-shadow: 0 4px 15px rgba(253, 249, 212, 0.4);
 }
 
 .sidebar-nav-item.active i {
@@ -226,7 +241,7 @@ body {
 .stat-value {
     font-size: 32px;
     font-weight: 700;
-    color: var(--ciet-maroon);
+    color: #4a4a4a;
 }
 
 /* Custom Buttons */
@@ -241,16 +256,41 @@ body {
     gap: 10px;
 }
 
-.btn-ciet-primary {
+.btn-ciet-primary,
+.btn-li-primary {
     background: var(--ciet-maroon);
-    color: #fff;
+    color: white !important;
     box-shadow: 0 4px 15px rgba(128, 0, 0, 0.2);
+    border: none;
 }
 
-.btn-ciet-primary:hover {
-    background: var(--ciet-maroon-light);
+.btn-ciet-primary:hover,
+.btn-li-primary:hover {
+    background: #a00000;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(128, 0, 0, 0.3);
+    color: white !important;
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--ciet-maroon) !important;
+    color: white !important;
+}
+
+.nav-pills .nav-link {
+    color: var(--text-muted);
+}
+
+.border-urgent {
+    border-left: 5px solid #ffc107 !important;
+}
+
+.border-standard {
+    border-left: 5px solid #e2e8f0 !important;
+}
+
+.sidebar-nav-item.text-danger:hover {
+    background: rgba(220, 53, 69, 0.05) !important;
 }
 
 /* Login/Register Overhaul */
@@ -290,8 +330,8 @@ body {
 
 .input-glass:focus {
     background: #fff;
-    border-color: var(--ciet-maroon);
-    box-shadow: 0 0 0 4px rgba(128, 0, 0, 0.1);
+    border-color: #FDF9D4;
+    box-shadow: 0 0 0 4px rgba(253, 249, 212, 0.2);
     outline: none;
 }
 
@@ -310,16 +350,83 @@ body {
     }
 }
 
-#vanta-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
+/* Global Theme Overrides */
+.text-maroon {
+    color: #4a4a4a !important;
 }
 
-/* responsive */
+.bg-maroon {
+    background-color: #FDF9D4 !important;
+    color: #4a4a4a !important;
+}
+
+.text-primary {
+    color: #a19a5f !important;
+}
+
+/* A darker citrus for emphasis */
+.border-maroon {
+    border-color: #FDF9D4 !important;
+}
+
+.bg-maroon-subtle {
+    background-color: rgba(253, 249, 212, 0.4) !important;
+}
+
+.bg-primary-subtle {
+    background-color: rgba(253, 249, 212, 0.2) !important;
+}
+
+/* Student Portal Overrides */
+.pf-banner {
+    background: linear-gradient(120deg, #FDF9D4 0%, #FFFFFF 100%) !important;
+}
+
+.pf-av-ph {
+    background: #FDF9D4 !important;
+    color: #4a4a4a !important;
+}
+
+.pf-stat-val {
+    color: #4a4a4a !important;
+}
+
+.abt-p {
+    background: #FDF9D4 !important;
+    color: #4a4a4a !important;
+    border: 1px solid #f8f1b0 !important;
+}
+
+.abt-o:hover {
+    border-color: #FDF9D4 !important;
+    color: #4a4a4a !important;
+}
+
+.abt-g {
+    background: #FFFFFF !important;
+    color: #4a4a4a !important;
+    border: 1px solid #FDF9D4 !important;
+}
+
+.kpi-val {
+    color: #4a4a4a !important;
+}
+
+.std-tab.active {
+    color: #4a4a4a !important;
+    border-bottom-color: #FDF9D4 !important;
+}
+
+.tl-ico {
+    background: rgba(253, 249, 212, 0.5) !important;
+    color: #4a4a4a !important;
+}
+
+.proj-row:hover {
+    border-color: #FDF9D4 !important;
+}
+
+/* Responsive */
 @media (max-width: 1100px) {
     .app-grid {
         grid-template-columns: 1fr;

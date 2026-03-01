@@ -1,5 +1,5 @@
 from django.contrib import admin
-from apps.academics.models import Department, Subject, Marks, Attendance
+from apps.academics.models import Department, Subject, Marks
 
 
 @admin.register(Department)
@@ -23,12 +23,3 @@ class MarksAdmin(admin.ModelAdmin):
     list_filter = ('subject__department', 'subject')
     search_fields = ('student__roll_no', 'student__user__full_name')
     ordering = ('student',)
-
-
-@admin.register(Attendance)
-class AttendanceAdmin(admin.ModelAdmin):
-    list_display = ('student', 'subject', 'date', 'is_present', 'recorded_by')
-    list_filter = ('subject__department', 'is_present', 'date')
-    search_fields = ('student__roll_no', 'student__user__full_name')
-    date_hierarchy = 'date'
-    ordering = ('-date',)

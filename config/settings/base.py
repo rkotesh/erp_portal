@@ -230,8 +230,25 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-# Email Settings (Console backend for development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email Settings (env-configurable; defaults to console backend)
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@ciet.edu.in')
+EMAIL_HOST = env('EMAIL_HOST', default='')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
+
+# Realtime OTP integrations (optional; configure in .env for production)
+TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env('TWILIO_FROM_NUMBER', default='')
+
+SMS_API_URL = env('SMS_API_URL', default='')
+SMS_API_TOKEN = env('SMS_API_TOKEN', default='')
+SMS_API_PHONE_FIELD = env('SMS_API_PHONE_FIELD', default='phone')
+SMS_API_MESSAGE_FIELD = env('SMS_API_MESSAGE_FIELD', default='message')
 
 
 # DRF Settings

@@ -1,189 +1,182 @@
-{% extends 'base.html' %}
-{% block title %}Academics | {{ profile.roll_no }}{% endblock %}
+{% extends 'student_portal/base_portal.html' %}
+{% load static %}
 
-{% block content %}
-<div class="container-fluid p-0">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+{% block portal_title %}Academic Records{% endblock %}
+
+{% block portal_content %}
+<div class="space-y-8 portal-fade-in">
+    <!-- Header with Breadcrumbs/Actions -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h2 class="fw-bold mb-1">Academic Records</h2>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{% url 'student-portal' %}"
-                            class="text-decoration-none">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Academics</li>
-                </ol>
+            <nav class="flex text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 gap-2">
+                <a href="{% url 'student-portal' %}"
+                    class="hover:text-[#800000] transition-colors no-underline">Dashboard</a>
+                <span>/</span>
+                <span class="text-slate-900">Academics</span>
             </nav>
+            <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Transcript & Progress</h2>
         </div>
-        <button onclick="window.print()" class="btn btn-outline-dark btn-sm d-none d-md-block">
-            <i class="bi bi-printer me-2"></i> Print Transcript
-        </button>
     </div>
 
-    <!-- Summary Tabs Section -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-        <div class="card-body p-0">
-            <ul class="nav nav-tabs border-0 px-4 pt-3" id="academicTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active border-0 py-3 fw-bold text-uppercase tracking-wider smaller"
-                        id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab"
-                        style="letter-spacing: 0.1em;">Subject Summary</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link border-0 py-3 fw-bold text-uppercase tracking-wider smaller" id="marks-tab"
-                        data-bs-toggle="tab" data-bs-target="#marks" type="button" role="tab"
-                        style="letter-spacing: 0.1em;">Marks History</button>
-                </li>
-            </ul>
-
-            <div class="tab-content" id="academicTabsContent">
-                <!-- Subject Summary Tab -->
-                <div class="tab-pane fade show active p-4" id="summary" role="tabpanel">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle border-top">
-                            <thead class="bg-light">
-                                <tr class="smaller text-muted text-uppercase fw-bold">
-                                    <th class="ps-3 py-3">Subject Name</th>
-                                    <th>Sem</th>
-                                    <th class="text-center">Internal</th>
-                                    <th class="text-center">External</th>
-                                    <th class="text-center">Total</th>
-                                    <th class="text-center">Grade</th>
-                                    <th class="text-center pe-3">Result</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for id, stats in subject_stats.items %}
-                                <tr>
-                                    <td class="ps-3 py-3">
-                                        <div class="fw-bold text-dark">{{ stats.subject.name }}</div>
-                                        <div class="text-muted smaller">{{ stats.subject.code }} &bull; {{
-                                            stats.subject.credits }} Credits</div>
-                                    </td>
-                                    <td>{{ stats.subject.semester }}</td>
-
-                                    <td class="text-center fw-semibold text-muted">{{ stats.marks.internal|default:"-"
-                                        }}</td>
-                                    <td class="text-center fw-semibold text-muted">{{ stats.marks.external|default:"-"
-                                        }}</td>
-                                    <td class="text-center fw-bold text-primary">{{ stats.marks.total|default:"-" }}
-                                    </td>
-                                    <td class="text-center"><span
-                                            class="badge bg-primary-subtle text-primary px-3 rounded-pill">{{
-                                            stats.marks.grade|default:"-" }}</span></td>
-                                    <td class="text-center pe-3">
-                                        {% if stats.marks %}
-                                        {% if stats.marks.grade != 'F' %}
-                                        <span class="badge bg-success-subtle text-success small">Pass</span>
-                                        {% else %}
-                                        <span class="badge bg-danger-subtle text-danger small">Fail</span>
-                                        {% endif %}
-                                        {% else %}
-                                        <span class="text-muted smaller">Pending</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="8" class="text-center py-5 text-muted">No subject records available.
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Marks History Tab -->
-                <div class="tab-pane fade p-4" id="marks" role="tabpanel">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="bg-light">
-                                <tr class="smaller text-muted text-uppercase">
-                                    <th class="ps-3 py-3">Subject</th>
-                                    <th>Internal</th>
-                                    <th>External</th>
-                                    <th>Total</th>
-                                    <th>Grade</th>
-                                    <th class="pe-3">Recorded At</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for m in marks %}
-                                <tr>
-                                    <td class="ps-3 py-3 fw-semibold">{{ m.subject.name }}</td>
-                                    <td>{{ m.internal }}</td>
-                                    <td>{{ m.external }}</td>
-                                    <td class="fw-bold text-primary">{{ m.total }}</td>
-                                    <td><span class="badge bg-info-subtle text-info">{{ m.grade }}</span></td>
-                                    <td class="text-muted smaller pe-3">{{ m.created_at|date:"M d, Y" }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">No marks logs found.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div
+            class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:shadow-lg transition-all">
+            <div
+                class="w-14 h-14 bg-maroon/5 text-[#800000] rounded-2xl flex items-center justify-center group-hover:bg-[#800000] group-hover:text-white transition-all">
+                <i data-lucide="trending-up" class="w-7 h-7"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Current CGPA</p>
+                <h3 class="text-2xl font-bold text-slate-900">{{ profile.cgpa|default:"0.0" }}</h3>
+            </div>
+        </div>
+        <div
+            class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:shadow-lg transition-all">
+            <div
+                class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                <i data-lucide="book-open" class="w-7 h-7"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Credits</p>
+                <h3 class="text-2xl font-bold text-slate-900">124</h3>
+            </div>
+        </div>
+        <div
+            class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:shadow-lg transition-all">
+            <div
+                class="w-14 h-14 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-all">
+                <i data-lucide="check-circle" class="w-7 h-7"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Arrears Log</p>
+                <h3 class="text-2xl font-bold text-slate-900">0</h3>
             </div>
         </div>
     </div>
+
+    <!-- Main Content Tabs -->
+    <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden min-h-[500px]">
+        <div class="border-b border-slate-100 px-8 flex">
+            <button
+                class="py-6 border-b-2 border-[#800000] text-[#800000] font-bold text-sm tracking-tight transition-all active-tab-btn"
+                data-target="summary-section">
+                Semester Assessment
+            </button>
+            <button
+                class="py-6 border-b-2 border-transparent text-slate-400 hover:text-slate-600 px-8 font-bold text-sm tracking-tight transition-all tab-btn"
+                data-target="history-section">
+                Marks History
+            </button>
+        </div>
+
+        <div id="summary-section" class="tab-panel">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50">
+                        <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                            <th class="px-8 py-5">Course Module</th>
+                            <th class="px-8 py-5 text-center">Semester</th>
+                            <th class="px-8 py-5 text-center">Internal (40)</th>
+                            <th class="px-8 py-5 text-center">External (60)</th>
+                            <th class="px-8 py-5 text-center">Final (100)</th>
+                            <th class="px-8 py-5 text-center">Grade</th>
+                            <th class="px-8 py-5 text-right">Credit Pts</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for id, stats in subject_stats.items %}
+                        <tr class="hover:bg-slate-50/50 transition-all">
+                            <td class="px-8 py-6">
+                                <div>
+                                    <p class="font-bold text-slate-900 mb-0.5">{{ stats.subject_name }}</p>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ stats.subject_code }}</p>
+                                </div>
+                            </td>
+                            <td class="px-8 py-6 text-center">
+                                <span class="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">{{ stats.semester }}</span>
+                            </td>
+                            <td class="px-8 py-6 text-center text-sm font-bold text-slate-500">{{ stats.internal }}</td>
+                            <td class="px-8 py-6 text-center text-sm font-bold text-slate-500">{{ stats.external }}</td>
+                            <td class="px-8 py-6 text-center font-bold text-[#800000]">{{ stats.total }}</td>
+                            <td class="px-8 py-6 text-center">
+                                <span
+                                    class="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-slate-900 text-white font-bold text-xs ring-4 ring-slate-100">
+                                    {{ stats.grade }}
+                                </span>
+                            </td>
+                            <td class="px-8 py-6 text-right">
+                                <span class="text-sm font-bold text-slate-900">{{ stats.credits }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="history-section" class="tab-panel hidden p-8">
+            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 flex gap-4 mb-8">
+                <i data-lucide="info" class="w-6 h-6 text-indigo-600 mt-1"></i>
+                <div class="text-sm text-indigo-900 leading-relaxed font-medium">
+                    This table shows the historical record of all marks awarded. Final grades on the transcript are
+                    computed based on the most recent validated assessment.
+                </div>
+            </div>
+            <div class="overflow-x-auto border border-slate-100 rounded-2xl">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50">
+                        <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                            <th class="px-8 py-4">Subject</th>
+                            <th class="px-8 py-4 text-center">Internal</th>
+                            <th class="px-8 py-4 text-center">External</th>
+                            <th class="px-8 py-4 text-center">Final</th>
+                            <th class="px-8 py-4 text-right">Date Recorded</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for m in marks %}
+                        <tr class="hover:bg-slate-50/50">
+                            <td class="px-8 py-5 font-bold text-slate-900 text-sm">{{ m.subject.name }}</td>
+                            <td class="px-8 py-5 text-center text-sm font-semibold text-slate-500">{{ m.internal }}</td>
+                            <td class="px-8 py-5 text-center text-sm font-semibold text-slate-500">{{ m.external }}</td>
+                            <td class="px-8 py-5 text-center font-bold text-[#800000]">{{ m.total }}</td>
+                            <td class="px-8 py-5 text-right text-xs font-bold text-slate-400 uppercase">{{ m.created_at|date:"d M Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
 </div>
+{% endblock %}
 
-<style>
-    .smaller {
-        font-size: 0.75rem;
-    }
+{% block extra_js %}
+{{ block.super }}
+<script>
+    const tabButtons = document.querySelectorAll('[data-target]');
+    const panels = document.querySelectorAll('.tab-panel');
 
-    .nav-tabs .nav-link {
-        color: #64748b;
-        margin-right: 20px;
-        transition: all 0.2s;
-        position: relative;
-    }
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabButtons.forEach(b => {
+                b.classList.remove('border-[#800000]', 'text-[#800000]');
+                b.classList.add('border-transparent', 'text-slate-400');
+            });
+            btn.classList.add('border-[#800000]', 'text-[#800000]');
+            btn.classList.remove('border-transparent', 'text-slate-400');
 
-    .nav-tabs .nav-link.active {
-        color: var(--accent-color) !important;
-        background: transparent !important;
-    }
-
-    .nav-tabs .nav-link.active::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: var(--accent-color);
-        border-radius: 3px 3px 0 0;
-    }
-
-    .nav-tabs .nav-link:hover {
-        color: var(--accent-color);
-    }
-
-    .bg-primary-subtle {
-        background-color: rgba(59, 130, 246, 0.1) !important;
-        color: #3b82f6 !important;
-    }
-
-    .bg-success-subtle {
-        background-color: rgba(16, 185, 129, 0.1) !important;
-        color: #10b981 !important;
-    }
-
-    .bg-danger-subtle {
-        background-color: rgba(239, 68, 68, 0.1) !important;
-        color: #ef4444 !important;
-    }
-
-    .bg-info-subtle {
-        background-color: rgba(6, 182, 212, 0.1) !important;
-        color: #06b6d4 !important;
-    }
-</style>
+            const target = btn.getAttribute('data-target');
+            panels.forEach(p => {
+                if (p.id === target) {
+                    p.classList.remove('hidden');
+                } else {
+                    p.classList.add('hidden');
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

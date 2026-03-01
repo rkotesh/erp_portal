@@ -118,6 +118,7 @@ class HODDashboardView(RoleRequiredMixin, View):
             'timetables':         timetables,
             'calendars':          calendars,
             'syllabus_summary':   list(syllabus_summary),
+            'subjects':           dept_subjects,
             'perf_labels':        json.dumps(perf_labels),
             'perf_values':        json.dumps(perf_values),
         })

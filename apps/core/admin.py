@@ -1,15 +1,9 @@
 from django.contrib import admin
-from apps.core.models import College, Announcement, Event
+from apps.core.models import College, Event
 
 @admin.register(College)
 class CollegeAdmin(admin.ModelAdmin):
     list_display = ('name', 'code', 'contact_email')
-
-@admin.register(Announcement)
-class AnnouncementAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'is_active', 'created_at')
-    list_filter = ('category', 'is_active')
-    search_fields = ('title', 'content')
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):

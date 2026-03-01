@@ -5,8 +5,10 @@
 {% block content %}
 <div class="container-fluid p-0">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-dark m-0"><i class="bi bi-bell-fill text-maroon me-2"></i> Communications & Alerts</h3>
-        {% if request.user.role in 'Admin,HOD,Principal' %}
+        <h3 class="fw-bold text-dark m-0">
+            <i class="bi bi-bell-fill text-maroon me-2"></i> Communications & Alerts
+        </h3>
+        {% if request.user.role == 'Admin' or request.user.role == 'HOD' or request.user.role == 'Principal' or request.user.role == 'Chairman' or request.user.role == 'Director' %}
         <button class="btn-ciet btn-ciet-primary" data-bs-toggle="modal" data-bs-target="#notificationModal">
             <i class="bi bi-plus-lg me-1"></i> Post New Alert
         </button>
@@ -16,24 +18,24 @@
     <div class="row">
         <div class="col-lg-8">
             {% for n in notifications %}
-            <div class="card-linkedin p-4 mb-3 position-relative"
-                style="border-left: 4px solid {% if n.is_global %}#800000{% else %}#0a66c2{% endif %};">
+            <div class="card-linkedin p-4 mb-3 position-relative {% if n.is_global %}border-urgent{% else %}border-standard{% endif %}">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
-                            <span class="badge {% if n.is_global %}bg-danger{% else %}bg-primary{% endif %} smaller">
+                            <span class="badge {% if n.is_global %}bg-warning text-dark{% else %}bg-light text-dark border{% endif %} smaller">
                                 {% if n.is_global %}URGENT{% else %}ANNOUNCEMENT{% endif %}
                             </span>
-                            <span class="text-muted smaller"><i class="bi bi-calendar3"></i> {{ n.created_at|date:"M d,
-                                Y" }}</span>
+                            <span class="text-muted smaller"><i class="bi bi-calendar3"></i> {{ n.created_at|date:"M d, Y" }}</span>
                         </div>
                         <h5 class="fw-bold mb-2">{{ n.title }}</h5>
                         <p class="mb-0 text-secondary">{{ n.message|linebreaksbr }}</p>
                     </div>
                     <div class="text-end">
                         <div class="smaller fw-bold text-maroon">{{ n.sender.full_name }}</div>
-                        <div class="smaller text-muted">{{ n.sender.role }}{% if n.target_department %} — {{
-                            n.target_department.code }}{% endif %}</div>
+                        <div class="smaller text-muted">
+                            {{ n.sender.role }}
+                            {% if n.target_department %} - {{ n.target_department.code }}{% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -55,8 +57,7 @@
                         <li><i class="bi bi-check-circle-fill text-success"></i> Global Announcements</li>
                         <li><i class="bi bi-check-circle-fill text-success"></i> Role: {{ request.user.role }}</li>
                         {% if request.user.department %}
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Dept: {{ request.user.department.name
-                            }}</li>
+                        <li><i class="bi bi-check-circle-fill text-success"></i> Dept: {{ request.user.department.name }}</li>
                         {% endif %}
                     </ul>
                 </div>
@@ -77,8 +78,7 @@
     </div>
 </div>
 
-<!-- POST NOTIFICATION MODAL -->
-{% if request.user.role in 'Admin,HOD,Principal' %}
+{% if request.user.role == 'Admin' or request.user.role == 'HOD' or request.user.role == 'Principal' or request.user.role == 'Chairman' or request.user.role == 'Director' %}
 <div class="modal fade" id="notificationModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content glass-panel border-0">
@@ -91,31 +91,26 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="smaller fw-bold mb-1">Title</label>
-                        <input type="text" name="title" class="form-control rounded-3" required
-                            placeholder="e.g. Exam Schedule Update">
+                        <input type="text" name="title" class="form-control rounded-3" required placeholder="e.g. Exam Schedule Update">
                     </div>
                     <div class="mb-3">
                         <label class="smaller fw-bold mb-1">Message</label>
-                        <textarea name="message" class="form-control rounded-3" rows="4" required
-                            placeholder="Details of the announcement..."></textarea>
+                        <textarea name="message" class="form-control rounded-3" rows="4" required placeholder="Details of the announcement..."></textarea>
                     </div>
-                    <div class="row">
+                    <div class="row g-3">
                         <div class="col-md-6 mb-3">
-                            <label class="smaller fw-bold mb-1">Target Role</label>
+                            <label class="smaller fw-bold mb-1">Audience</label>
                             <select name="target_role" class="form-select rounded-3">
-                                <option value="All">Everyone</option>
+                                <option value="All">Global Campus</option>
                                 <option value="Student">Students Only</option>
-                                <option value="Faculty">Faculty Only</option>
+                                <option value="Faculty">Faculty & Staff</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="smaller fw-bold mb-1">Scope</label>
-                            <div class="form-check mt-1">
-                                <input class="form-check-input" type="checkbox" name="is_global" id="is_global" {% if
-                                    request.user.role !='Admin' %}disabled{% endif %}>
-                                <label class="form-check-label smaller" for="is_global">
-                                    Global (All Depts)
-                                </label>
+                            <label class="smaller fw-bold mb-1">Urgency</label>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="is_global" id="is_global" {% if request.user.role != 'Admin' %}disabled{% endif %}>
+                                <label class="form-check-label smaller fw-bold text-slate-600" for="is_global">Mark as Global</label>
                             </div>
                         </div>
                     </div>
@@ -132,8 +127,7 @@
                     {% endif %}
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4"
-                        data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn-ciet btn-ciet-primary px-5">Publish Now</button>
                 </div>
             </form>

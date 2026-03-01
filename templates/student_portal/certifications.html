@@ -1,75 +1,230 @@
-﻿{% extends 'base.html' %}
-{% block title %}Certifications{% endblock %}
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Certifications</h1>
-    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCertModal">+ Add Certificate</button>
-</div>
+﻿{% extends 'student_portal/base_portal.html' %}
+{% load static %}
 
-{% if certs %}
-<div class="row g-3">
-    {% for c in certs %}
-    <div class="col-md-6 col-lg-4">
-        <div class="card p-3 h-100">
-            <div class="d-flex justify-content-between align-items-start">
-                <h6 class="mb-1">{{ c.title }}</h6>
-                {% if c.is_verified %}
-                <span class="badge bg-success">Verified</span>
-                {% elif c.cert_type == 'college' %}
-                <span class="badge bg-warning text-dark">Pending Review</span>
-                {% else %}
-                <span class="badge bg-secondary">Unverified</span>
-                {% endif %}
+{% block portal_title %}Certification Hub{% endblock %}
+
+{% block portal_content %}
+<div class="space-y-8 portal-fade-in">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <nav class="flex text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 gap-2">
+                <a href="{% url 'student-portal' %}" class="hover:text-[#800000] no-underline">Dashboard</a>
+                <span>/</span>
+                <span class="text-slate-900">Certifications</span>
+            </nav>
+            <h2 class="text-3xl font-bold text-slate-900">My Credentials</h2>
+        </div>
+        <button
+            class="bg-[#800000] text-white px-8 py-3 rounded-2xl font-bold text-sm hover:shadow-xl hover:shadow-maroon/20 transition-all flex items-center gap-2"
+            data-bs-toggle="modal" data-bs-target="#addCertModal">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i> Add New Certification
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
+            <div
+                class="w-12 h-12 bg-[#800000]/5 text-[#800000] rounded-xl flex items-center justify-center font-bold text-lg">
+                {{ certs.count }}
             </div>
-            <small class="text-muted">{{ c.issuer }}</small>
-            <small class="text-muted">{{ c.issued_date }}</small>
-            <div class="mt-2">
-                {% if c.cert_url %}<a href="{{ c.cert_url }}" class="btn btn-sm btn-outline-primary" target="_blank">View Online</a>{% endif %}
-                {% if c.file %}<a href="{{ c.file.url }}" class="btn btn-sm btn-outline-secondary" target="_blank">Download</a>{% endif %}
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-tight">Total<br>Certs
+                </p>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
+            <div
+                class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center font-bold text-lg">
+                {% if certs %}1{% else %}0{% endif %}
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-tight">
+                    Industry<br>Ready</p>
             </div>
         </div>
     </div>
-    {% endfor %}
+
+    <!-- Cert Card Grid -->
+    {% if certs %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for c in certs %}
+        <div
+            class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden flex flex-col h-full">
+            <div class="flex justify-between items-start mb-6">
+                <div
+                    class="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-[#800000]/5 group-hover:text-[#800000] transition-all">
+                    <i data-lucide="award" class="w-8 h-8"></i>
+                </div>
+                <div class="flex gap-2 items-center">
+                    {% if c.is_verified %}
+                    <span
+                        class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-green-50 text-green-600 border border-green-100">Verified</span>
+                    {% elif c.cert_type == 'college' %}
+                    <span
+                        class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-orange-50 text-orange-600 border border-orange-100">Under
+                        Review</span>
+                    {% else %}
+                    <span
+                        class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-slate-50 text-slate-400 border border-slate-100">External</span>
+                    {% endif %}
+                    <form method="post" onsubmit="return confirm('Remove this certification?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="cert_id" value="{{ c.id }}">
+                        <button type="submit"
+                            class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-all">
+                            Remove
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="flex-1">
+                <h4 class="text-xl font-bold text-slate-900 mb-2 leading-tight">{{ c.title }}</h4>
+                <p class="text-sm font-semibold text-slate-500 mb-1">{{ c.issuer }}</p>
+                <p class="text-[11px] font-bold text-slate-300 uppercase tracking-widest mb-6">Issued {{ c.issued_date|date:"M Y" }}</p>
+            </div>
+
+            <div class="flex gap-3 pt-6 border-t border-slate-50">
+                {% if c.cert_url %}
+                <a href="{{ c.cert_url }}" target="_blank"
+                    class="flex-1 bg-slate-900 text-white text-center py-3 rounded-xl font-bold text-[11px] no-underline hover:bg-black transition-all">
+                    Verify Online
+                </a>
+                {% endif %}
+                {% if c.file %}
+                <a href="{{ c.file.url }}" target="_blank"
+                    class="flex-1 bg-slate-50 text-slate-900 text-center py-3 rounded-xl font-bold text-[11px] no-underline hover:bg-slate-100 transition-all">
+                    Download PDF
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Accent element -->
+            <div
+                class="absolute -right-2 -top-2 w-12 h-12 bg-[#800000]/5 rounded-full blur-xl group-hover:bg-[#800000]/10 transition-all">
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-[2.5rem] p-20 text-center border-2 border-dashed border-slate-100">
+        <div class="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-200">
+            <i data-lucide="award" class="w-10 h-10"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-slate-900 mb-2">Build your digital trophy case</h3>
+        <p class="text-slate-500 font-medium max-w-sm mx-auto mb-8">Add your industry certifications and college-issued
+            achievements to showcase your skills.</p>
+        <button
+            class="bg-[#800000] text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-maroon/20 hover:scale-105 transition-all"
+            data-bs-toggle="modal" data-bs-target="#addCertModal">
+            Get Started
+        </button>
+    </div>
+    {% endif %}
 </div>
-{% else %}
-<div class="card p-5 text-center text-muted">No certifications added yet.</div>
-{% endif %}
 
 <!-- Add Modal -->
 <div class="modal fade" id="addCertModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Add Certification</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-[2.5rem] shadow-2xl overflow-hidden p-4">
+            <div class="modal-header border-0 pb-0">
+                <h3 class="text-2xl font-bold text-slate-900 tracking-tight">Add Certification</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Type</label>
-                        <select name="cert_type" class="form-select" id="certTypeSelect">
-                            <option value="link">External Link (Credly / Exam Center)</option>
-                            <option value="upload">Manual Upload</option>
-                            <option value="college">College Issued</option>
+                <div class="modal-body space-y-4">
+                    <div>
+                        <label
+                            class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Credential
+                            Type</label>
+                        <select name="cert_type"
+                            class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
+                            id="certTypeSelect">
+                            <option value="link">Digital Link (URL)</option>
+                            <option value="upload">Document Upload (PDF/Image)</option>
+                            <option value="college">College Verified</option>
                         </select>
                     </div>
-                    <div class="mb-3"><label class="form-label">Title *</label><input type="text" name="title" class="form-control" required></div>
-                    <div class="mb-3"><label class="form-label">Issuer *</label><input type="text" name="issuer" class="form-control" required></div>
-                    <div class="mb-3"><label class="form-label">Issue Date *</label><input type="date" name="issued_date" class="form-control" required></div>
-                    <div id="urlField" class="mb-3"><label class="form-label">Certificate URL</label><input type="url" name="cert_url" class="form-control" placeholder="https://credly.com/..."></div>
-                    <div id="fileField" class="mb-3" style="display:none"><label class="form-label">Upload File</label><input type="file" name="file" class="form-control" accept=".pdf,.jpg,.png"></div>
+                    <div>
+                        <label
+                            class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Certification
+                            Title</label>
+                        <input type="text" name="title"
+                            class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
+                            placeholder="e.g. AWS Solutions Architect">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Issuer</label>
+                            <input type="text" name="issuer"
+                                class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
+                                placeholder="Amazon Web Services">
+                        </div>
+                        <div>
+                            <label
+                                class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Issue
+                                Date</label>
+                            <input type="date" name="issued_date"
+                                class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
+                                >
+                        </div>
+                    </div>
+                    <div id="urlField">
+                        <label
+                            class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Verification
+                            URL</label>
+                        <input type="url" name="cert_url"
+                            class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
+                            placeholder="https://credly.com/...">
+                    </div>
+                    <div id="fileField" class="hidden">
+                        <label
+                            class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Certificate
+                            File</label>
+                        <div
+                            class="border-2 border-dashed border-slate-100 rounded-2xl p-8 text-center hover:bg-slate-50 transition-all cursor-pointer relative group">
+                            <i data-lucide="upload-cloud"
+                                class="w-8 h-8 mx-auto mb-2 text-slate-300 group-hover:text-[#800000] transition-colors"></i>
+                            <p class="text-xs font-bold text-slate-400">Click to upload or drag and drop</p>
+                            <input type="file" name="file" class="absolute inset-0 opacity-0 cursor-pointer"
+                                accept=".pdf,.jpg,.png">
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                <div class="modal-footer border-0 pt-8">
+                    <button type="submit"
+                        class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all">
+                        Securely Save Credential
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
 <script>
-document.getElementById('certTypeSelect').addEventListener('change', function() {
-    var isLink = this.value === 'link';
-    document.getElementById('urlField').style.display = isLink ? 'block' : 'none';
-    document.getElementById('fileField').style.display = isLink ? 'none' : 'block';
-});
+    const certTypeSelect = document.getElementById('certTypeSelect');
+    const urlField = document.getElementById('urlField');
+    const fileField = document.getElementById('fileField');
+    const titleInput = document.querySelector('input[name="title"]');
+    const issuerInput = document.querySelector('input[name="issuer"]');
+    const dateInput = document.querySelector('input[name="issued_date"]');
+
+    function syncCertForm() {
+        const isLink = certTypeSelect.value === 'link';
+        urlField.classList.toggle('hidden', !isLink);
+        fileField.classList.toggle('hidden', isLink);
+        titleInput.required = !isLink;
+        issuerInput.required = !isLink;
+        dateInput.required = !isLink;
+    }
+
+    certTypeSelect.addEventListener('change', syncCertForm);
+    syncCertForm();
 </script>
 {% endblock %}

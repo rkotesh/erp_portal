@@ -21,7 +21,10 @@ from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
-from apps.core.views import DashboardView, StudentListView, FacultyListView, ReportListView, EventListView, EventCreateView
+from apps.core.views import (
+    DashboardView, StudentListView, FacultyListView, ReportListView,
+    EventListView, EventCreateView
+)
 from apps.core.search_views import GlobalSearchView
 from apps.students.urls import ui_urlpatterns as student_ui_urlpatterns
 from apps.faculty.urls import ui_urlpatterns as faculty_ui_urlpatterns

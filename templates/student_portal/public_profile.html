@@ -4,20 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ profile.user.full_name }} — Student Profile | CIET</title>
+    <title>{{ profile.user.full_name }} — Resume | CIET ERP</title>
     <meta name="description"
         content="{{ profile.user.full_name }} — {{ profile.department }} student at Chalapathi Institute of Engineering and Technology, Batch {{ profile.batch }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
+        /* ── Design Tokens ── */
         :root {
-            --maroon: #800000;
-            --gold: #C5A55A;
+            --maroon: #4a4a4a;
+            --gold: #a19a5f;
+            --ivory: #FDF9D4;
             --dark: #0f172a;
-            --card: #1e293b;
-            --card-light: #273548;
-            --accent: #3b82f6;
+            --slate: #1e293b;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --muted: #64748b;
+            --accent: #2563eb;
         }
 
         * {
@@ -28,17 +33,16 @@
 
         body {
             font-family: 'Outfit', sans-serif;
-            background: var(--dark);
-            color: #e2e8f0;
-            min-height: 100vh;
+            background: #f1f5f9;
+            color: #1e293b;
         }
 
-        /* Topbar */
+        /* ── Topbar ── */
         .topbar {
-            background: rgba(15, 23, 42, 0.95);
+            background: rgba(15, 23, 42, .96);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            padding: .65rem 0;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -52,509 +56,805 @@
             color: #fff;
         }
 
-        .topbar-brand span {
-            font-size: 0.8rem;
+        .topbar-brand .brand-name {
+            font-size: .8rem;
             font-weight: 700;
-            letter-spacing: 0.5px;
             color: var(--gold);
+            letter-spacing: .5px;
         }
 
-        /* Hero Banner */
-        .hero-banner {
-            background: linear-gradient(135deg, var(--maroon) 0%, #4a1942 50%, #1e3a5f 100%);
-            padding: 3rem 2rem 5rem;
-            position: relative;
-            border-radius: 0 0 24px 24px;
-        }
-
-        .hero-badge {
+        .topbar-btn {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(8px);
-            padding: 6px 14px;
-            border-radius: 50px;
-            font-size: 0.75rem;
+            gap: 5px;
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-size: .75rem;
             font-weight: 600;
-            color: var(--gold);
-            margin-bottom: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all .2s;
         }
 
-        /* Profile Card */
-        .profile-card {
+        .topbar-btn-outline {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, .25);
+        }
+
+        .topbar-btn-outline:hover {
+            background: rgba(255, 255, 255, .1);
+            color: #fff;
+        }
+
+        .topbar-btn-gold {
+            background: var(--gold);
+            color: #1a0a00;
+            border: none;
+        }
+
+        .topbar-btn-gold:hover {
+            background: #d4b267;
+        }
+
+        /* ── Resume Wrapper ── */
+        .resume-page {
+            max-width: 920px;
+            margin: 2rem auto 3rem;
+            padding: 0 1rem;
+        }
+
+        /* ── Resume Card ── */
+        .resume-card {
             background: var(--card);
+            border: 1px solid var(--border);
             border-radius: 20px;
-            margin-top: -3rem;
-            position: relative;
-            padding: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 4px 30px rgba(253, 249, 212, .2);
+            overflow: hidden;
         }
 
-        .avatar-ring {
+        /* ── Header Banner ── */
+        .resume-header {
+            background: linear-gradient(135deg, var(--ivory) 0%, #FFFFFF 100%);
+            padding: 2.5rem 2.5rem 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resume-header::before {
+            content: '';
+            position: absolute;
+            top: -80px;
+            right: -80px;
+            width: 280px;
+            height: 280px;
+            background: rgba(197, 165, 90, .08);
+            border-radius: 50%;
+        }
+
+        .avatar-wrap {
             width: 110px;
             height: 110px;
             border-radius: 50%;
-            border: 4px solid var(--gold);
-            padding: 3px;
-            margin-top: -4.5rem;
-            background: var(--card);
+            border: 4px solid var(--ivory);
+            overflow: hidden;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, .1);
         }
 
-        .avatar-ring img {
+        .avatar-wrap img {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
             object-fit: cover;
         }
 
-        .avatar-placeholder {
+        .avatar-initials {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--maroon), #4a1942);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #fff;
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--maroon);
         }
 
-        .profile-name {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 2px;
+        .resume-name {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--maroon);
+            line-height: 1.15;
         }
 
-        .profile-meta {
-            font-size: 0.85rem;
-            color: #94a3b8;
+        .resume-tagline {
+            color: var(--muted);
+            font-size: .95rem;
+            margin-top: 4px;
         }
 
-        .cgpa-badge {
-            background: linear-gradient(135deg, var(--gold), #e8c252);
-            color: #000;
-            font-weight: 700;
-            font-size: 0.8rem;
-            padding: 6px 16px;
+        .resume-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(197, 165, 90, .18);
+            border: 1px solid rgba(197, 165, 90, .4);
+            color: var(--gold);
+            font-size: .72rem;
+            font-weight: 600;
+            padding: 4px 14px;
             border-radius: 50px;
-            display: inline-block;
+            margin-top: .75rem;
         }
 
-        /* Social Links */
-        .social-links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 1rem;
-        }
-
-        .social-links a {
+        /* CGPA Pill */
+        .cgpa-pill {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            text-decoration: none;
+            background: linear-gradient(135deg, var(--gold), #d4b267);
+            color: #1a0a00;
+            font-weight: 800;
+            font-size: .85rem;
+            padding: 7px 18px;
+            border-radius: 50px;
+        }
+
+        /* Contact row */
+        .contact-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            padding: 1rem 2.5rem;
+            background: rgba(15, 23, 42, .04);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: .82rem;
+            color: var(--muted);
             font-weight: 500;
-            transition: all 0.2s;
-            background: rgba(255, 255, 255, 0.06);
-            color: #e2e8f0;
-            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .social-links a:hover {
-            background: rgba(255, 255, 255, 0.12);
-            transform: translateY(-1px);
+        .contact-item i {
+            color: var(--maroon);
+            font-size: .95rem;
         }
 
-        .social-links a i {
+        .contact-item a {
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .contact-item a:hover {
+            color: var(--maroon);
+        }
+
+        /* Social Links row */
+        .social-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .75rem;
+            padding: 1rem 2.5rem;
+            border-bottom: 1px solid var(--border);
+            background: #fafbfc;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 9px;
+            font-size: .8rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1.5px solid var(--border);
+            background: #fff;
+            color: #1e293b;
+            transition: all .2s;
+        }
+
+        .social-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+        }
+
+        /* ── Sections ── */
+        .resume-body {
+            padding: 1.5rem 2.5rem 2.5rem;
+        }
+
+        .resume-section {
+            margin-bottom: 2rem;
+        }
+
+        .resume-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .sec-title {
             font-size: 1rem;
-        }
-
-        /* Section Cards */
-        .section-card {
-            background: var(--card);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .section-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #fff;
+            font-weight: 800;
+            color: var(--maroon);
+            text-transform: uppercase;
+            letter-spacing: 1px;
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: .6rem;
+            margin-bottom: 1.1rem;
+            border-bottom: 2px solid var(--maroon);
         }
 
-        .section-title i {
-            color: var(--gold);
+        .sec-title i {
+            font-size: 1rem;
         }
 
-        /* Item Card */
-        .item-card {
-            background: var(--card-light);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            transition: border-color 0.2s;
+        /* Education */
+        .edu-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: .9rem 0;
+            border-bottom: 1px solid var(--border);
         }
 
-        .item-card:hover {
-            border-color: rgba(197, 165, 90, 0.3);
+        .edu-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
         }
 
-        .item-title {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #fff;
+        .edu-inst {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: .95rem;
         }
 
-        .item-sub {
-            font-size: 0.78rem;
-            color: #94a3b8;
+        .edu-degree {
+            color: var(--muted);
+            font-size: .83rem;
+            margin-top: 2px;
         }
 
-        .verified-badge {
+        .edu-score {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            font-size: 0.7rem;
+            background: linear-gradient(135deg, var(--gold), #d4b267);
+            color: #1a0a00;
+            font-weight: 700;
+            font-size: .78rem;
+            padding: 4px 12px;
+            border-radius: 50px;
+            white-space: nowrap;
+        }
+
+        /* Verified badge */
+        .verified {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: .7rem;
             font-weight: 600;
-            color: #22c55e;
-            background: rgba(34, 197, 94, 0.1);
-            padding: 3px 10px;
+            color: #16a34a;
+            background: rgba(22, 163, 74, .08);
+            padding: 2px 9px;
             border-radius: 50px;
         }
 
-        .tag {
-            font-size: 0.7rem;
-            padding: 3px 10px;
+        /* Certification */
+        .cert-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: .8rem;
+        }
+
+        .cert-card {
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #fafbfc;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .cert-card:hover {
+            border-color: var(--maroon);
+            box-shadow: 0 2px 12px rgba(128, 0, 0, .08);
+        }
+
+        .cert-title {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: .9rem;
+        }
+
+        .cert-issuer {
+            color: var(--muted);
+            font-size: .78rem;
+            margin-top: 3px;
+        }
+
+        /* Project */
+        .proj-card {
+            padding: 1.2rem;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            margin-bottom: .9rem;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .proj-card:hover {
+            border-color: var(--maroon);
+            box-shadow: 0 2px 16px rgba(128, 0, 0, .08);
+        }
+
+        .proj-title {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: .95rem;
+        }
+
+        .proj-desc {
+            color: var(--muted);
+            font-size: .83rem;
+            margin-top: .4rem;
+            line-height: 1.55;
+        }
+
+        .tech-tag {
+            display: inline-block;
+            font-size: .7rem;
+            font-weight: 600;
+            padding: 2px 10px;
             border-radius: 50px;
-            font-weight: 500;
-            margin-right: 4px;
+            background: rgba(37, 99, 235, .07);
+            color: var(--accent);
+            margin: 2px;
         }
 
-        .tag-tech {
-            background: rgba(59, 130, 246, 0.15);
-            color: #60a5fa;
+        /* Internship */
+        .intern-row {
+            display: flex;
+            gap: 1rem;
+            padding: .9rem 0;
+            border-bottom: 1px solid var(--border);
         }
 
-        /* Footer */
-        .page-footer {
+        .intern-row:last-child {
+            border-bottom: none;
+        }
+
+        .intern-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--maroon);
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .intern-role {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: .92rem;
+        }
+
+        .intern-org {
+            color: var(--muted);
+            font-size: .82rem;
+        }
+
+        /* Events */
+        .event-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .85rem;
+        }
+
+        .event-table th {
+            background: rgba(128, 0, 0, .05);
+            color: var(--maroon);
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            padding: 8px 12px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .event-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .event-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Research */
+        .research-card {
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: .8rem;
+            transition: border-color .2s;
+        }
+
+        .research-card:hover {
+            border-color: var(--accent);
+        }
+
+        /* ── Footer ── */
+        .resume-footer {
             text-align: center;
-            padding: 2rem 0;
-            color: #475569;
-            font-size: 0.75rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 1.25rem;
+            background: rgba(15, 23, 42, .03);
+            border-top: 1px solid var(--border);
+            font-size: .75rem;
+            color: var(--muted);
         }
 
-        .page-footer img {
-            height: 20px;
-            opacity: 0.5;
-            margin-bottom: 6px;
-        }
-
-        /* Print-friendly */
+        /* ── Print ── */
         @media print {
-            body {
-                background: #fff;
-                color: #000;
-            }
-
-            .section-card,
-            .profile-card {
-                border: 1px solid #ddd;
-            }
 
             .topbar,
-            .social-links a,
             .no-print {
                 display: none !important;
             }
+
+            body {
+                background: #fff;
+            }
+
+            .resume-card {
+                box-shadow: none;
+                border: none;
+                border-radius: 0;
+            }
+
+            .resume-header {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
 
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .hero-banner {
-                padding: 2rem 1rem 4rem;
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .resume-header {
+                padding: 1.75rem 1.25rem 1.25rem;
             }
 
-            .profile-card {
+            .contact-row,
+            .social-row {
+                padding: .9rem 1.25rem;
+            }
+
+            .resume-body {
                 padding: 1.25rem;
-            }
-
-            .profile-name {
-                font-size: 1.3rem;
-            }
-
-            .avatar-ring {
-                width: 90px;
-                height: 90px;
-                margin-top: -3.5rem;
-            }
-
-            .social-links a {
-                padding: 6px 12px;
-                font-size: 0.75rem;
             }
         }
     </style>
 </head>
 
 <body>
+
     <!-- Topbar -->
-    <div class="topbar">
+    <div class="topbar no-print">
         <div class="container d-flex justify-content-between align-items-center">
             <a href="/" class="topbar-brand">
-                <i class="bi bi-mortarboard-fill text-white"></i>
-                <span>CIET ERP</span>
+                <i class="bi bi-mortarboard-fill"></i>
+                <span class="brand-name">CIET ERP</span>
             </a>
-            <div class="d-flex align-items-center gap-2 no-print">
-                <button onclick="window.print()" class="btn btn-sm btn-outline-light rounded-pill px-3"
-                    style="font-size: 0.75rem;">
-                    <i class="bi bi-printer me-1"></i> Print
+            <div class="d-flex align-items-center gap-2">
+                <button onclick="window.print()" class="topbar-btn topbar-btn-outline">
+                    <i class="bi bi-printer"></i> Print / Save PDF
                 </button>
-                <button onclick="copyLink()" class="btn btn-sm btn-outline-warning rounded-pill px-3"
-                    style="font-size: 0.75rem;">
-                    <i class="bi bi-link-45deg me-1"></i> Copy Link
+                <button onclick="copyLink()" class="topbar-btn topbar-btn-gold" id="copyBtn">
+                    <i class="bi bi-link-45deg"></i> Copy Link
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Hero Banner -->
-    <div class="hero-banner">
-        <div class="container">
-            <div class="hero-badge">
-                <i class="bi bi-patch-check-fill"></i> Verified Student Profile
-            </div>
-            <h2 class="text-white fw-bold mb-1">{{ profile.user.full_name }}</h2>
-            <p class="mb-0" style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">
-                {{ profile.department.name }} &bull; Batch {{ profile.batch }}
-            </p>
-        </div>
-    </div>
+    <!-- Resume Page -->
+    <div class="resume-page">
+        <div class="resume-card">
 
-    <div class="container" style="max-width: 850px;">
-        <!-- Profile Card -->
-        <div class="profile-card">
-            <div class="d-flex flex-wrap align-items-end gap-3">
-                <div class="avatar-ring">
-                    {% if profile.photo %}
-                    <img src="{{ profile.photo.url }}" alt="{{ profile.user.full_name }}">
-                    {% else %}
-                    <div class="avatar-placeholder">{{ profile.user.full_name|first|upper }}</div>
+            <!-- ══ HEADER ══ -->
+            <div class="resume-header">
+                <div class="d-flex flex-wrap align-items-center gap-4" style="position:relative;z-index:1;">
+                    <div class="avatar-wrap">
+                        {% if profile.photo %}
+                        <img src="{{ profile.photo.url }}" alt="{{ profile.user.full_name }}">
+                        {% else %}
+                        <div class="avatar-initials">{{ profile.user.full_name|first|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="resume-badge"><i class="bi bi-patch-check-fill"></i> Verified Student Profile</div>
+                        <div class="resume-name mt-2">{{ profile.user.full_name }}</div>
+                        <div class="resume-tagline">{{ profile.department.name }} &bull; Batch {{ profile.batch }}
+                            &bull; {{ profile.roll_no }}</div>
+                    </div>
+                    {% if profile.cgpa %}
+                    <div class="cgpa-pill">
+                        <i class="bi bi-star-fill"></i>
+                        CGPA {{ profile.cgpa }}
+                    </div>
                     {% endif %}
                 </div>
-                <div class="flex-grow-1">
-                    <div class="profile-name">{{ profile.user.full_name }}</div>
-                    <div class="profile-meta">
-                        <i class="bi bi-hash"></i> {{ profile.roll_no }} &bull;
-                        <i class="bi bi-building"></i> {{ profile.department }} &bull;
-                        <i class="bi bi-calendar3"></i> {{ profile.batch }}
+            </div>
+
+            <!-- ══ CONTACT ROW ══ -->
+            <div class="contact-row">
+                <div class="contact-item">
+                    <i class="bi bi-envelope-fill"></i>
+                    <a href="mailto:{{ profile.user.email }}">{{ profile.user.email }}</a>
+                </div>
+                <div class="contact-item">
+                    <i class="bi bi-building"></i>
+                    <span>{{ profile.department.name }}</span>
+                </div>
+                <div class="contact-item">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <span>Chalapathi Institute of Engineering &amp; Technology</span>
+                </div>
+            </div>
+
+            <!-- ══ SOCIAL LINKS ROW ══ -->
+            {% if profile.linkedin_url or profile.github_url or profile.leetcode_url or profile.hackerrank_url or
+            profile.codechef_url or profile.codeforces_url or profile.resume %}
+            <div class="social-row">
+                {% if profile.linkedin_url %}
+                <a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener" class="social-link"
+                    style="color:#0a66c2;border-color:rgba(10,102,194,.2);">
+                    <i class="bi bi-linkedin"></i> LinkedIn
+                </a>
+                {% endif %}
+                {% if profile.github_url %}
+                <a href="{{ profile.github_url }}" target="_blank" rel="noopener" class="social-link"
+                    style="color:#24292e;border-color:rgba(36,41,46,.2);">
+                    <i class="bi bi-github"></i> GitHub
+                </a>
+                {% endif %}
+                {% if profile.leetcode_url %}
+                <a href="{{ profile.leetcode_url }}" target="_blank" rel="noopener" class="social-link"
+                    style="color:#f89f1b;border-color:rgba(248,159,27,.2);">
+                    <i class="bi bi-code-square"></i> LeetCode
+                </a>
+                {% endif %}
+                {% if profile.hackerrank_url %}
+                <a href="{{ profile.hackerrank_url }}" target="_blank" rel="noopener" class="social-link"
+                    style="color:#2ec866;border-color:rgba(46,200,102,.2);">
+                    <i class="bi bi-cpu"></i> HackerRank
+                </a>
+                {% endif %}
+                {% if profile.codechef_url %}
+                <a href="{{ profile.codechef_url }}" target="_blank" rel="noopener" class="social-link"
+                    style="color:#5b4638;border-color:rgba(91,70,56,.2);">
+                    <i class="bi bi-trophy"></i> CodeChef
+                </a>
+                {% endif %}
+                {% if profile.codeforces_url %}
+                <a href="{{ profile.codeforces_url }}" target="_blank" rel="noopener" class="social-link"
+                    style="color:#1a5276;border-color:rgba(26,82,118,.2);">
+                    <i class="bi bi-braces"></i> Codeforces
+                </a>
+                {% endif %}
+                {% if profile.resume %}
+                <a href="{{ profile.resume.url }}" target="_blank" rel="noopener" class="social-link"
+                    style="color:var(--maroon);border-color:rgba(74,74,74,.25);">
+                    <i class="bi bi-file-earmark-pdf-fill"></i> Download Resume
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- ══ RESUME BODY ══ -->
+            <div class="resume-body">
+
+                <!-- EDUCATION -->
+                {% if education %}
+                <div class="resume-section">
+                    <div class="sec-title"><i class="bi bi-mortarboard-fill"></i> Education</div>
+                    {% for edu in education %}
+                    <div class="edu-row">
+                        <div>
+                            <div class="edu-inst">{{ edu.institution }}</div>
+                            <div class="edu-degree">{{ edu.get_edu_type_display }}{% if edu.board_university %} &bull;
+                                {{ edu.board_university }}{% endif %}</div>
+                            {% if edu.year_of_passing %}<div class="edu-degree">Passed: {{ edu.year_of_passing }}</div>
+                            {% endif %}
+                            {% if edu.is_verified %}<span class="verified mt-1 d-inline-flex"><i
+                                    class="bi bi-patch-check-fill"></i> Verified</span>{% endif %}
+                        </div>
+                        {% if edu.score %}
+                        <div class="edu-score"><i class="bi bi-star-fill"></i> {{ edu.score }} {{ edu.get_score_type_display }}</div>
+                        {% endif %}
                     </div>
-                </div>
-                <div>
-                    <span class="cgpa-badge"><i class="bi bi-star-fill me-1"></i> CGPA {{ profile.cgpa }}</span>
-                </div>
-            </div>
-
-            <!-- Social & Resume Links -->
-            <div class="social-links">
-                {% if profile.linkedin_url %}<a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener"><i
-                        class="bi bi-linkedin"></i> LinkedIn</a>{% endif %}
-                {% if profile.github_url %}<a href="{{ profile.github_url }}" target="_blank" rel="noopener"><i
-                        class="bi bi-github"></i> GitHub</a>{% endif %}
-                {% if profile.leetcode_url %}<a href="{{ profile.leetcode_url }}" target="_blank" rel="noopener"><i
-                        class="bi bi-code-square"></i> LeetCode</a>{% endif %}
-                {% if profile.hackerrank_url %}<a href="{{ profile.hackerrank_url }}" target="_blank" rel="noopener"><i
-                        class="bi bi-cpu"></i> HackerRank</a>{% endif %}
-                {% if profile.codechef_url %}<a href="{{ profile.codechef_url }}" target="_blank" rel="noopener"><i
-                        class="bi bi-trophy"></i> CodeChef</a>{% endif %}
-                {% if profile.codeforces_url %}<a href="{{ profile.codeforces_url }}" target="_blank" rel="noopener"><i
-                        class="bi bi-braces"></i> Codeforces</a>{% endif %}
-                {% if profile.resume %}<a href="{{ profile.resume.url }}" target="_blank" rel="noopener"
-                    style="background: rgba(197,165,90,0.15); color: var(--gold); border-color: rgba(197,165,90,0.3);"><i
-                        class="bi bi-file-earmark-pdf"></i> Download Resume</a>{% endif %}
-            </div>
-        </div>
-
-        <!-- Education -->
-        {% if education %}
-        <div class="section-card">
-            <div class="section-title"><i class="bi bi-mortarboard"></i> Education</div>
-            {% for edu in education %}
-            <div class="item-card d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="item-title">{{ edu.get_edu_type_display }}</div>
-                    <div class="item-sub">{{ edu.institution }}{% if edu.board_university %} &bull; {{
-                        edu.board_university }}{% endif %}</div>
-                    {% if edu.year_of_passing %}<div class="item-sub">Year: {{ edu.year_of_passing }}</div>{% endif %}
-                </div>
-                <div class="text-end">
-                    {% if edu.score %}<span class="cgpa-badge" style="font-size: 0.7rem; padding: 4px 12px;">{{
-                        edu.score }} {{ edu.get_score_type_display }}</span>{% endif %}
-                    {% if edu.is_verified %}<div class="verified-badge mt-1"><i class="bi bi-patch-check-fill"></i>
-                        Verified</div>{% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Certifications -->
-        {% if certifications %}
-        <div class="section-card">
-            <div class="section-title"><i class="bi bi-award"></i> Certifications</div>
-            <div class="row g-2">
-                {% for c in certifications %}
-                <div class="col-md-6">
-                    <div class="item-card">
-                        <div class="item-title">{{ c.title }}</div>
-                        <div class="item-sub">{{ c.issuer }}{% if c.issued_date %} &bull; {{ c.issued_date|date:"M Y"
-                            }}{% endif %}</div>
-                        {% if c.is_verified %}<span class="verified-badge mt-1"><i class="bi bi-patch-check-fill"></i>
-                            Verified</span>{% endif %}
-                        {% if c.cert_url %}<a href="{{ c.cert_url }}" target="_blank" rel="noopener"
-                            class="d-block mt-1" style="font-size: 0.75rem; color: var(--accent);">View Certificate
-                            →</a>{% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Projects -->
-        {% if projects %}
-        <div class="section-card">
-            <div class="section-title"><i class="bi bi-code-slash"></i> Projects</div>
-            {% for p in projects %}
-            <div class="item-card">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="item-title">{{ p.title }}{% if p.is_verified %} <span class="verified-badge"><i
-                                    class="bi bi-patch-check-fill"></i> Verified</span>{% endif %}</div>
-                        {% if p.description %}<div class="item-sub mt-1">{{ p.description|truncatewords:40 }}</div>{%
-                        endif %}
-                    </div>
-                    {% if p.repo_url %}<a href="{{ p.repo_url }}" target="_blank" rel="noopener"
-                        class="btn btn-sm btn-outline-light rounded-pill" style="font-size: 0.7rem;">GitHub →</a>{%
-                    endif %}
-                </div>
-                {% if p.tech_stack %}
-                <div class="mt-2">
-                    {% for tech in p.tech_stack.split %}
-                    <span class="tag tag-tech">{{ tech }}</span>
                     {% endfor %}
                 </div>
                 {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
 
-        <!-- Internships -->
-        {% if internships %}
-        <div class="section-card">
-            <div class="section-title"><i class="bi bi-briefcase"></i> Internships</div>
-            {% for i in internships %}
-            <div class="item-card">
-                <div class="item-title">{{ i.role }}</div>
-                <div class="item-sub">{{ i.organization }} &bull; {{ i.start_date|date:"M Y" }} — {% if i.end_date %}{{
-                    i.end_date|date:"M Y" }}{% else %}Present{% endif %}</div>
-                {% if i.technologies %}<div class="mt-1">{% for tech in i.technologies.split %}<span
-                        class="tag tag-tech">{{ tech }}</span>{% endfor %}</div>{% endif %}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Events & Achievements -->
-        {% if events %}
-        <div class="section-card">
-            <div class="section-title"><i class="bi bi-trophy"></i> Events &amp; Achievements</div>
-            {% for e in events %}
-            <div class="item-card d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="item-title">{{ e.name }}</div>
-                    <div class="item-sub">{{ e.organizer }}{% if e.event_date %} &bull; {{ e.event_date|date:"M d, Y"
-                        }}{% endif %}</div>
-                </div>
-                {% if e.position %}<span class="cgpa-badge" style="font-size: 0.7rem; padding: 4px 12px;">{{ e.position
-                    }}</span>{% endif %}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Courses -->
-        {% if courses %}
-        <div class="section-card">
-            <div class="section-title"><i class="bi bi-book"></i> Courses</div>
-            <div class="row g-2">
-                {% for c in courses %}
-                <div class="col-md-6">
-                    <div class="item-card">
-                        <div class="item-title">{{ c.title }}</div>
-                        <div class="item-sub">{{ c.platform }}{% if c.completion_percentage %} &bull; {{
-                            c.completion_percentage }}% Complete{% endif %}</div>
-                        {% if c.is_verified %}<span class="verified-badge mt-1"><i class="bi bi-patch-check-fill"></i>
-                            Verified</span>{% endif %}
+                <!-- CERTIFICATIONS -->
+                {% if certifications %}
+                <div class="resume-section">
+                    <div class="sec-title"><i class="bi bi-award-fill"></i> Certifications</div>
+                    <div class="cert-grid">
+                        {% for c in certifications %}
+                        <div class="cert-card">
+                            <div class="cert-title">{{ c.title }}</div>
+                            <div class="cert-issuer">{{ c.issuer }}{% if c.issued_date %} &bull; {{ c.issued_date|date:"M Y" }}{% endif %}</div>
+                            <div class="mt-2 d-flex align-items-center gap-2">
+                                {% if c.is_verified %}<span class="verified"><i class="bi bi-patch-check-fill"></i>
+                                    Verified</span>{% endif %}
+                                {% if c.cert_url %}<a href="{{ c.cert_url }}" target="_blank" rel="noopener"
+                                    style="font-size:.75rem;color:#2563eb;">View →</a>{% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
+                {% endif %}
 
-        <!-- Research -->
-        {% if research %}
-        <div class="section-card">
-            <div class="section-title"><i class="bi bi-journal-richtext"></i> Research</div>
-            {% for r in research %}
-            <div class="item-card">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="item-title">{{ r.title }}{% if r.is_verified %} <span class="verified-badge"><i
-                                    class="bi bi-patch-check-fill"></i> Verified</span>{% endif %}</div>
-                        <div class="item-sub">{{ r.get_outcome_display }}{% if r.publisher %} &bull; {{ r.publisher }}{%
-                            endif %}{% if r.published_date %} &bull; {{ r.published_date|date:"M Y" }}{% endif %}</div>
+                <!-- PROJECTS -->
+                {% if projects %}
+                <div class="resume-section">
+                    <div class="sec-title"><i class="bi bi-code-slash"></i> Projects</div>
+                    {% for p in projects %}
+                    <div class="proj-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="proj-title">
+                                {{ p.title }}
+                                {% if p.is_verified %}<span class="verified ms-2"><i class="bi bi-patch-check-fill"></i>
+                                    Verified</span>{% endif %}
+                            </div>
+                            {% if p.repo_url %}
+                            <a href="{{ p.repo_url }}" target="_blank" rel="noopener"
+                                class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                                style="font-size:.74rem;white-space:nowrap;flex-shrink:0;">
+                                <i class="bi bi-github me-1"></i>GitHub
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% if p.description %}
+                        <div class="proj-desc">{{ p.description|truncatewords:50 }}</div>
+                        {% endif %}
+                        {% if p.tech_stack %}
+                        <div class="mt-2">
+                            {% for tech in p.tech_stack.split %}
+                            <span class="tech-tag">{{ tech }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     </div>
-                    {% if r.publication_url %}<a href="{{ r.publication_url }}" target="_blank" rel="noopener"
-                        class="btn btn-sm btn-outline-light rounded-pill" style="font-size: 0.7rem;">Read →</a>{% endif
-                    %}
+                    {% endfor %}
                 </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
+                {% endif %}
 
-        <!-- Footer -->
-        <div class="page-footer">
-            <i class="bi bi-shield-check"></i> Profile verified by Chalapathi Institute of Engineering &amp;
-            Technology<br>
-            <span style="color: #334155;">Generated by CIET ERP &bull; {{ profile.updated_at|date:"d M Y" }}</span>
+                <!-- INTERNSHIPS -->
+                {% if internships %}
+                <div class="resume-section">
+                    <div class="sec-title"><i class="bi bi-briefcase-fill"></i> Internships</div>
+                    {% for i in internships %}
+                    <div class="intern-row">
+                        <div class="intern-dot"></div>
+                        <div class="flex-grow-1">
+                            <div class="intern-role">{{ i.role }}</div>
+                            <div class="intern-org">{{ i.organization }}</div>
+                            <div class="intern-org">
+                                {{ i.start_date|date:"M Y" }} &mdash;
+                                {% if i.end_date %}{{ i.end_date|date:"M Y" }}{% else %}Present{% endif %}
+                            </div>
+                            {% if i.technologies %}
+                            <div class="mt-1">
+                                {% for tech in i.technologies.split %}
+                                <span class="tech-tag">{{ tech }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- EVENTS / ACHIEVEMENTS -->
+                {% if events %}
+                <div class="resume-section">
+                    <div class="sec-title"><i class="bi bi-trophy-fill"></i> Events &amp; Achievements</div>
+                    <table class="event-table">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Organizer</th>
+                                <th>Date</th>
+                                <th>Position</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for e in events %}
+                            <tr>
+                                <td class="fw-semibold">{{ e.name }}</td>
+                                <td class="text-muted">{{ e.organizer }}</td>
+                                <td class="text-muted">{% if e.event_date %}{{ e.event_date|date:"d M Y" }}{% else %}—{%
+                                    endif %}</td>
+                                <td>{% if e.position %}<span class="edu-score" style="font-size:.72rem;">{{ e.position }}</span>{% else %}—{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+                <!-- COURSES -->
+                {% if courses %}
+                <div class="resume-section">
+                    <div class="sec-title"><i class="bi bi-book-fill"></i> Online Courses</div>
+                    <div class="cert-grid">
+                        {% for c in courses %}
+                        <div class="cert-card">
+                            <div class="cert-title">{{ c.title }}</div>
+                            <div class="cert-issuer">{{ c.platform }}{% if c.completion_percentage %} &bull; {{ c.completion_percentage }}% complete{% endif %}</div>
+                            {% if c.is_verified %}<span class="verified mt-1 d-inline-flex"><i
+                                    class="bi bi-patch-check-fill"></i> Verified</span>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- RESEARCH -->
+                {% if research %}
+                <div class="resume-section">
+                    <div class="sec-title"><i class="bi bi-journal-richtext"></i> Research &amp; Publications</div>
+                    {% for r in research %}
+                    <div class="research-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-bold" style="font-size:.92rem;">{{ r.title }}
+                                    {% if r.is_verified %}<span class="verified ms-2"><i
+                                            class="bi bi-patch-check-fill"></i> Verified</span>{% endif %}
+                                </div>
+                                <div class="text-muted" style="font-size:.8rem;margin-top:3px;">
+                                    {{ r.get_outcome_display }}{% if r.publisher %} &bull; {{ r.publisher }}{% endif
+                                    %}{% if r.published_date %} &bull; {{ r.published_date|date:"M Y" }}{% endif %}
+                                </div>
+                            </div>
+                            {% if r.publication_url %}
+                            <a href="{{ r.publication_url }}" target="_blank" rel="noopener"
+                                class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                style="font-size:.74rem;white-space:nowrap;flex-shrink:0;">Read →</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- ══ FOOTER ══ -->
+            <div class="resume-footer">
+                <i class="bi bi-shield-check me-1" style="color:var(--maroon);"></i>
+                Profile verified by Chalapathi Institute of Engineering &amp; Technology
+                &nbsp;&bull;&nbsp;
+                Generated by CIET ERP &nbsp;&bull;&nbsp; {{ profile.updated_at|date:"d M Y" }}
+            </div>
+
         </div>
     </div>
 
     <script>
         function copyLink() {
             navigator.clipboard.writeText(window.location.href).then(function () {
-                var btn = document.querySelector('[onclick="copyLink()"]');
-                btn.innerHTML = '<i class="bi bi-check2 me-1"></i> Copied!';
-                setTimeout(function () { btn.innerHTML = '<i class="bi bi-link-45deg me-1"></i> Copy Link'; }, 2000);
+                var btn = document.getElementById('copyBtn');
+                btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+                setTimeout(function () {
+                    btn.innerHTML = '<i class="bi bi-link-45deg"></i> Copy Link';
+                }, 2500);
             });
         }
     </script>

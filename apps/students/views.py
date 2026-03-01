@@ -1,20 +1,60 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 from django.views import View
 from django.utils import timezone
 from django.http import Http404, JsonResponse
 from django.db.models import Avg
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
+from django.conf import settings
+import random
+import re
+import os
 from apps.students.models import (
     StudentProfile, EducationBackground, Certification,
-    Project, Internship, Event, Course, Research
+    Project, Internship, Event, Course, Research, SemesterResult
 )
-from apps.academics.models import Subject, Marks, Attendance
+from apps.accounts.models import OTPRecord
+from apps.academics.models import Subject, Marks
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from apps.students.serializers import StudentProfileSerializer
 from apps.students.permissions import IsStudentOwnerOrReadOnly
+
+
+EXAM_CELL_ROLES = ['Chairman', 'Director', 'Principal', 'HOD', 'Faculty']
+
+
+def _extract_cert_metadata(cert_url):
+    """Best-effort metadata extraction from cert URL."""
+    derived = {}
+    if not cert_url:
+        return derived
+    try:
+        req = Request(cert_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urlopen(req, timeout=5) as resp:
+            html = resp.read(250000).decode('utf-8', errors='ignore')
+
+        og_title = re.search(r'<meta[^>]+property=["\']og:title["\'][^>]+content=["\']([^"\']+)["\']', html, re.I)
+        title_tag = re.search(r'<title>(.*?)</title>', html, re.I | re.S)
+        date_meta = re.search(r'(\d{4}-\d{2}-\d{2})', html)
+
+        if og_title:
+            derived['title'] = og_title.group(1).strip()
+        elif title_tag:
+            derived['title'] = re.sub(r'\s+', ' ', title_tag.group(1)).strip()
+
+        issuer = urlparse(cert_url).netloc.replace('www.', '')
+        if issuer:
+            derived['issuer'] = issuer
+        if date_meta:
+            derived['issued_date'] = date_meta.group(1)
+    except Exception:
+        pass
+    return derived
 
 
 # ── API ViewSet ────────────────────────────────────────────
@@ -66,39 +106,68 @@ class StudentPortalView(LoginRequiredMixin, View):
             return render(request, 'student_portal/no_profile.html')
 
         marks = Marks.objects.filter(student=profile).select_related('subject')
-        attendance = Attendance.objects.filter(student=profile).select_related('subject')
-        
-        # Calculate overall attendance
-        total_att = attendance.count()
-        present_att = attendance.filter(is_present=True).count()
-        att_pct = round((present_att / total_att * 100), 1) if total_att else 0
-
-        # Calculate subject-wise attendance
         subject_stats = {}
         for sub in Subject.objects.filter(department=profile.department):
-            sub_att = attendance.filter(subject=sub)
-            sub_count = sub_att.count()
-            sub_present = sub_att.filter(is_present=True).count()
-            sub_pct = round((sub_present / sub_count * 100), 1) if sub_count else 0
-            
-            # Find marks if any
             sub_marks = marks.filter(subject=sub).first()
-            
+            internal = sub_marks.internal if sub_marks else '-'
+            external = sub_marks.external if sub_marks else '-'
             subject_stats[sub.id] = {
-                'subject': sub,
-                'total': sub_count,
-                'present': sub_present,
-                'pct': sub_pct,
-                'marks': sub_marks
+                'subject_name': sub.name,
+                'subject_code': sub.code,
+                'semester': sub.semester,
+                'credits': sub.credits,
+                'internal': internal,
+                'external': external,
             }
+
+        def _cert_preview(c):
+            if not c.file:
+                return None
+            ext = os.path.splitext(c.file.name.lower())[1]
+            if ext in ['.png', '.jpg', '.jpeg', '.webp']:
+                return c.file.url
+            return None
+
+        activity_posts = []
+        for c in profile.certifications.all().order_by('-created_at')[:8]:
+            activity_posts.append({
+                'kind': 'Certification',
+                'title': c.title,
+                'subtitle': c.issuer,
+                'created_at': c.created_at,
+                'preview_image': _cert_preview(c),
+                'file_url': c.file.url if c.file else '',
+                'external_url': c.cert_url,
+                'verified': c.is_verified,
+            })
+        for p in profile.projects.all().order_by('-created_at')[:8]:
+            activity_posts.append({
+                'kind': 'Project',
+                'title': p.title,
+                'subtitle': p.tech_stack,
+                'created_at': p.created_at,
+                'preview_image': p.cover_image.url if p.cover_image else None,
+                'file_url': '',
+                'external_url': p.repo_url,
+                'verified': p.is_verified,
+            })
+        if profile.resume:
+            activity_posts.append({
+                'kind': 'Resume',
+                'title': 'Updated Resume',
+                'subtitle': 'Curriculum Vitae',
+                'created_at': profile.updated_at,
+                'preview_image': None,
+                'file_url': profile.resume.url,
+                'external_url': '',
+                'verified': True,
+            })
+        activity_posts = sorted(activity_posts, key=lambda x: x['created_at'], reverse=True)[:12]
 
         return render(request, 'student_portal/dashboard.html', {
             'profile': profile,
-            'att_pct': att_pct,
-            'total_classes': total_att,
-            'present': present_att,
-            'absent': total_att - present_att,
             'subject_stats': subject_stats,
+            'activity_posts': activity_posts,
         })
 
 
@@ -119,10 +188,24 @@ class StudentProfileEditView(LoginRequiredMixin, View):
         # Personal info
         profile.user.full_name = request.POST.get('full_name', profile.user.full_name)
         profile.user.save()
+        linkedin_url = request.POST.get('linkedin_url', '').strip()
+        if not linkedin_url:
+            messages.error(request, 'LinkedIn profile is required.')
+            return redirect('student-profile-edit')
+
+        personal_email = request.POST.get('personal_email', '').strip()
+        personal_phone = request.POST.get('personal_phone', '').strip()
+        if personal_email != profile.personal_email:
+            profile.personal_email_verified = False
+        if personal_phone != profile.personal_phone:
+            profile.personal_phone_verified = False
+        profile.personal_email = personal_email
+        profile.personal_phone = personal_phone
+
         # Links
         for field in ['linkedin_url', 'github_url', 'leetcode_url',
                       'hackerrank_url', 'codechef_url', 'codeforces_url']:
-            setattr(profile, field, request.POST.get(field, ''))
+            setattr(profile, field, request.POST.get(field, '').strip())
         if 'photo' in request.FILES:
             profile.photo = request.FILES['photo']
         if 'resume' in request.FILES:
@@ -132,36 +215,34 @@ class StudentProfileEditView(LoginRequiredMixin, View):
 
 
 class StudentAcademicsView(LoginRequiredMixin, View):
-    """View-only marks and attendance."""
+    """View-only semester marks published by institution staff."""
     def get(self, request):
         if request.user.role != 'Student':
             return redirect('dashboard')
         profile = get_object_or_404(StudentProfile, user=request.user)
         marks = Marks.objects.filter(student=profile).select_related('subject', 'subject__department')
-        attendance = Attendance.objects.filter(student=profile).select_related('subject')
-        
-        # Subject-wise Summary
         subject_stats = {}
         for sub in Subject.objects.filter(department=profile.department):
-            sub_att = attendance.filter(subject=sub)
-            sub_count = sub_att.count()
-            sub_present = sub_att.filter(is_present=True).count()
-            sub_pct = round((sub_present / sub_count * 100), 1) if sub_count else 0
-            
             sub_marks = marks.filter(subject=sub).first()
+            internal = sub_marks.internal if sub_marks else '-'
+            external = sub_marks.external if sub_marks else '-'
+            total = sub_marks.total if sub_marks else '-'
+            grade = sub_marks.grade if sub_marks and sub_marks.grade else '-'
             
             subject_stats[sub.id] = {
-                'subject': sub,
-                'total': sub_count,
-                'present': sub_present,
-                'pct': sub_pct,
-                'marks': sub_marks
+                'subject_name': sub.name,
+                'subject_code': sub.code,
+                'semester': sub.semester,
+                'credits': sub.credits,
+                'internal': internal,
+                'external': external,
+                'total': total,
+                'grade': grade,
             }
 
         return render(request, 'student_portal/academics.html', {
             'profile': profile,
             'marks': marks,
-            'attendance': attendance,
             'subject_stats': subject_stats,
         })
 
@@ -178,17 +259,49 @@ class StudentCertificationsView(LoginRequiredMixin, View):
 
     def post(self, request):
         profile = get_object_or_404(StudentProfile, user=request.user)
+        action = request.POST.get('action', 'create')
+        if action == 'delete':
+            cert_id = request.POST.get('cert_id')
+            cert = get_object_or_404(Certification, id=cert_id, student=profile)
+            cert.delete()
+            messages.success(request, 'Certification removed.')
+            return redirect('student-certifications')
+
+        cert_type = request.POST.get('cert_type', 'upload')
+        cert_url = request.POST.get('cert_url', '').strip()
+        title = request.POST.get('title', '').strip()
+        issuer = request.POST.get('issuer', '').strip()
+        issued_date = request.POST.get('issued_date', '').strip()
+
+        if cert_type == 'link':
+            derived = _extract_cert_metadata(cert_url)
+            title = title or derived.get('title', '')
+            issuer = issuer or derived.get('issuer', '')
+            issued_date = issued_date or derived.get('issued_date', '')
+
+        if not title:
+            title = 'External Certification'
+        if not issuer:
+            issuer = 'Self Reported'
+        if not issued_date:
+            issued_date = str(timezone.now().date())
+
         cert = Certification(
             student=profile,
-            title=request.POST.get('title', ''),
-            issuer=request.POST.get('issuer', ''),
-            issued_date=request.POST.get('issued_date'),
-            cert_type=request.POST.get('cert_type', 'upload'),
-            cert_url=request.POST.get('cert_url', ''),
+            title=title,
+            issuer=issuer,
+            issued_date=issued_date,
+            cert_type=cert_type,
+            cert_url=cert_url,
+            is_verified=False,
+            verified_by=None,
+            verified_at=None,
+            rejection_reason='',
         )
         if 'file' in request.FILES:
             cert.file = request.FILES['file']
         cert.save()
+        messages.success(request, 'Certification submitted for verification.')
         return redirect('student-certifications')
 
 
@@ -204,7 +317,15 @@ class StudentProjectsView(LoginRequiredMixin, View):
 
     def post(self, request):
         profile = get_object_or_404(StudentProfile, user=request.user)
-        Project.objects.create(
+        action = request.POST.get('action', 'create')
+        if action == 'delete':
+            project_id = request.POST.get('project_id')
+            project = get_object_or_404(Project, id=project_id, student=profile)
+            project.delete()
+            messages.success(request, 'Project removed.')
+            return redirect('student-projects')
+
+        project = Project.objects.create(
             student=profile,
             title=request.POST.get('title', ''),
             description=request.POST.get('description', ''),
@@ -214,6 +335,9 @@ class StudentProjectsView(LoginRequiredMixin, View):
             team_size=int(request.POST.get('team_size', 1)),
             repo_url=request.POST.get('repo_url', ''),
         )
+        if 'cover_image' in request.FILES:
+            project.cover_image = request.FILES['cover_image']
+            project.save(update_fields=['cover_image', 'updated_at'])
         return redirect('student-projects')
 
 
@@ -361,13 +485,8 @@ class StudentManagementDetailView(LoginRequiredMixin, View):
         events = profile.events.all()
         courses = profile.courses.all()
         research = profile.research.all()
+        semester_results = profile.semester_results.all()
         marks = Marks.objects.filter(student=profile).select_related('subject')
-        
-        attendance = Attendance.objects.filter(student=profile)
-        total_att = attendance.count()
-        present_att = attendance.filter(is_present=True).count()
-        absent_att = total_att - present_att
-        att_pct = round((present_att / total_att * 100), 1) if total_att else 0
 
         return render(request, 'students/student_detail.html', {
             'profile': profile,
@@ -378,12 +497,37 @@ class StudentManagementDetailView(LoginRequiredMixin, View):
             'events': events,
             'courses': courses,
             'research': research,
+            'semester_results': semester_results,
             'marks': marks,
-            'att_pct': att_pct,
-            'total_classes': total_att,
-            'present': present_att,
-            'absent': absent_att,
         })
+
+    def post(self, request, pk):
+        if request.user.role not in EXAM_CELL_ROLES:
+            return redirect('dashboard')
+        action = request.POST.get('action')
+        approve = request.POST.get('decision') == 'approve'
+        reason = request.POST.get('reason', '').strip()
+
+        if action == 'verify_education':
+            edu = get_object_or_404(EducationBackground, id=request.POST.get('item_id'))
+            edu.is_verified = approve
+            edu.verified_by = request.user if approve else None
+            edu.save(update_fields=['is_verified', 'verified_by', 'updated_at'])
+        elif action == 'verify_certification':
+            cert = get_object_or_404(Certification, id=request.POST.get('item_id'))
+            cert.is_verified = approve
+            cert.verified_by = request.user if approve else None
+            cert.verified_at = timezone.now() if approve else None
+            cert.rejection_reason = '' if approve else reason
+            cert.save(update_fields=['is_verified', 'verified_by', 'verified_at', 'rejection_reason', 'updated_at'])
+        elif action == 'verify_semester_result':
+            result = get_object_or_404(SemesterResult, id=request.POST.get('item_id'))
+            result.is_verified = approve
+            result.verified_by = request.user if approve else None
+            result.verified_at = timezone.now() if approve else None
+            result.rejection_reason = '' if approve else reason
+            result.save(update_fields=['is_verified', 'verified_by', 'verified_at', 'rejection_reason', 'updated_at'])
+        return redirect('student-detail', pk=pk)
 
 
 class PublicStudentProfileView(View):
@@ -408,3 +552,127 @@ class TogglePublicProfileView(LoginRequiredMixin, View):
         profile.is_public = not profile.is_public
         profile.save()
         return redirect('student-profile-edit')
+
+
+class StudentContactOtpView(LoginRequiredMixin, View):
+    """Send/verify OTP for personal email and phone."""
+    def post(self, request):
+        if request.user.role != 'Student':
+            return JsonResponse({'ok': False, 'error': 'Unauthorized'}, status=403)
+
+        profile = get_object_or_404(StudentProfile, user=request.user)
+        target = request.POST.get('target')
+        action = request.POST.get('otp_action')
+        if target not in ['email', 'phone']:
+            return JsonResponse({'ok': False, 'error': 'Invalid target'}, status=400)
+
+        purpose = f'student_{target}_verify'
+        if action == 'send':
+            destination = request.POST.get('destination', '').strip()
+            if not destination:
+                destination = profile.personal_email if target == 'email' else profile.personal_phone
+            if not destination:
+                return JsonResponse({'ok': False, 'error': f'Provide {target} first'}, status=400)
+
+            if target == 'email':
+                if destination != profile.personal_email:
+                    profile.personal_email = destination
+                    profile.personal_email_verified = False
+                    profile.save(update_fields=['personal_email', 'personal_email_verified', 'updated_at'])
+            else:
+                if destination != profile.personal_phone:
+                    profile.personal_phone = destination
+                    profile.personal_phone_verified = False
+                    profile.save(update_fields=['personal_phone', 'personal_phone_verified', 'updated_at'])
+
+            code = f"{random.randint(100000, 999999)}"
+            OTPRecord.objects.create(
+                user=request.user,
+                otp_code=code,
+                purpose=purpose,
+                expires_at=timezone.now() + timezone.timedelta(minutes=10)
+            )
+            if target == 'email':
+                from apps.accounts.otp_services import send_otp_email
+                ok, info = send_otp_email(request.user, code, purpose, destination_email=destination)
+                if not ok:
+                    return JsonResponse({'ok': False, 'error': f'Email OTP send failed: {info}'}, status=500)
+                if settings.EMAIL_BACKEND == 'django.core.mail.backends.console.EmailBackend':
+                    return JsonResponse({
+                        'ok': True,
+                        'message': f'OTP generated for email. Current backend is console, check runserver terminal output.'
+                    })
+            else:
+                from apps.accounts.otp_services import send_otp_sms_to_phone
+                ok, info = send_otp_sms_to_phone(destination, code, purpose, user_email=request.user.email)
+                if not ok:
+                    return JsonResponse({'ok': False, 'error': f'SMS OTP send failed: {info}'}, status=500)
+            return JsonResponse({'ok': True, 'message': f'OTP sent to {target}'})
+
+        if action == 'verify':
+            otp = request.POST.get('otp', '').strip()
+            otp_rec = OTPRecord.objects.filter(
+                user=request.user,
+                purpose=purpose,
+                otp_code=otp,
+                is_used=False,
+                expires_at__gt=timezone.now()
+            ).first()
+            if not otp_rec:
+                return JsonResponse({'ok': False, 'error': 'Invalid or expired OTP'}, status=400)
+            otp_rec.is_used = True
+            otp_rec.save(update_fields=['is_used', 'updated_at'])
+
+            if target == 'email':
+                profile.personal_email_verified = True
+            else:
+                profile.personal_phone_verified = True
+            profile.save(update_fields=['personal_email_verified', 'personal_phone_verified', 'updated_at'])
+            return JsonResponse({'ok': True, 'message': f'{target.capitalize()} verified'})
+
+        return JsonResponse({'ok': False, 'error': 'Invalid OTP action'}, status=400)
+
+
+class StudentVerificationQueueView(LoginRequiredMixin, View):
+    """Exam cell verification queue for student-submitted data."""
+    def get(self, request):
+        if request.user.role not in EXAM_CELL_ROLES:
+            return redirect('dashboard')
+        pending_education = EducationBackground.objects.filter(is_verified=False).select_related('student__user')
+        pending_certs = Certification.objects.filter(is_verified=False).select_related('student__user')
+        pending_results = SemesterResult.objects.filter(is_verified=False).select_related('student__user')
+        return render(request, 'students/verification_queue.html', {
+            'pending_education': pending_education,
+            'pending_certs': pending_certs,
+            'pending_results': pending_results,
+        })
+
+    def post(self, request):
+        if request.user.role not in EXAM_CELL_ROLES:
+            return redirect('dashboard')
+        item_type = request.POST.get('item_type')
+        item_id = request.POST.get('item_id')
+        decision = request.POST.get('decision')
+        approve = decision == 'approve'
+        reason = request.POST.get('reason', '').strip()
+
+        if item_type == 'education':
+            edu = get_object_or_404(EducationBackground, id=item_id)
+            edu.is_verified = approve
+            edu.verified_by = request.user if approve else None
+            edu.save(update_fields=['is_verified', 'verified_by', 'updated_at'])
+        elif item_type == 'certification':
+            cert = get_object_or_404(Certification, id=item_id)
+            cert.is_verified = approve
+            cert.verified_by = request.user if approve else None
+            cert.verified_at = timezone.now() if approve else None
+            cert.rejection_reason = '' if approve else reason
+            cert.save(update_fields=['is_verified', 'verified_by', 'verified_at', 'rejection_reason', 'updated_at'])
+        elif item_type == 'semester_result':
+            result = get_object_or_404(SemesterResult, id=item_id)
+            result.is_verified = approve
+            result.verified_by = request.user if approve else None
+            result.verified_at = timezone.now() if approve else None
+            result.rejection_reason = '' if approve else reason
+            result.save(update_fields=['is_verified', 'verified_by', 'verified_at', 'rejection_reason', 'updated_at'])
+        return redirect('student-verification-queue')

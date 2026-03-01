@@ -3,7 +3,12 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views import View
 from django.core.cache import cache
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from apps.accounts.models import User
+from apps.accounts.otp_services import create_and_send_otp, verify_otp
+from apps.accounts.forms import VerifyOTPForm
+from django.shortcuts import get_object_or_404
 
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_SECONDS = 300  # 5 minutes
@@ -16,8 +21,18 @@ def get_client_ip(request):
     return request.META.get('REMOTE_ADDR', '0.0.0.0')
 
 
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+def get_default_password_for_user(user):
+    """
+    Default password policy (except admin/superuser):
+    - Student accounts: College Roll No
+    - All other roles: Email address
+    """
+    if user.role == 'Student':
+        try:
+            return user.student_profile.roll_no
+        except Exception:
+            return user.email
+    return user.email
 
 class LoginView(View):
     @method_decorator(csrf_exempt)
@@ -25,9 +40,8 @@ class LoginView(View):
         return super().dispatch(*args, **kwargs)
 
     """
-    Unified login: accepts roll number (students) or email (all roles).
-    All user accounts are pre-created by admin.
-    Includes IP-based brute-force rate limiting.
+    Unified login: Phase 1 (Credentials)
+    If successful, sends OTP and redirects to Phase 2 (Verification)
     """
 
     def get(self, request, *args, **kwargs):
@@ -59,16 +73,13 @@ class LoginView(View):
                 'selected_role': role,
             })
 
-        # ── Look up user by email or roll number ──
+        # ── Look up user ──
         user = None
-
-        # Try email first
         try:
             user = User.objects.get(email__iexact=identifier)
         except User.DoesNotExist:
             pass
 
-        # If not found by email, try roll number (students and parents)
         if user is None and role in ['Student', 'Parent']:
             from apps.students.models import StudentProfile
             try:
@@ -77,7 +88,6 @@ class LoginView(View):
             except StudentProfile.DoesNotExist:
                 pass
 
-        # ── Validate ──
         if user is None:
             cache.set(cache_key, attempts + 1, LOCKOUT_SECONDS)
             return render(request, 'login.html', {
@@ -93,10 +103,8 @@ class LoginView(View):
                 'selected_role': role,
             })
 
-        # ALLOW Parent role to log in as Student
-        if user.role != role:
+        if user.role != role and not user.is_superuser:
             if role == 'Parent' and user.role == 'Student':
-                # Allow it, we'll handle the redirect in DashboardView or set a session flag
                 request.session['is_parent_login'] = True
             else:
                 cache.set(cache_key, attempts + 1, LOCKOUT_SECONDS)
@@ -106,11 +114,22 @@ class LoginView(View):
                     'selected_role': role,
                 })
 
-        # Check password
-        if not user.check_password(password):
+        # Check password policy
+        if user.is_superuser:
+            password_ok = user.check_password(password)
+        else:
+            expected_password = get_default_password_for_user(user)
+            password_ok = password == expected_password
+
+        if not password_ok:
             cache.set(cache_key, attempts + 1, LOCKOUT_SECONDS)
             remaining = MAX_LOGIN_ATTEMPTS - (attempts + 1)
-            error_msg = 'Incorrect password. Try again or use Forgot Password.'
+            if user.is_superuser:
+                error_msg = 'Incorrect password.'
+            elif user.role == 'Student':
+                error_msg = 'Incorrect password. For students, password is your College Roll No.'
+            else:
+                error_msg = 'Incorrect password. For this role, password is your registered email address.'
             if remaining <= 2 and remaining > 0:
                 error_msg += f' ({remaining} attempts remaining)'
             return render(request, 'login.html', {
@@ -119,12 +138,54 @@ class LoginView(View):
                 'selected_role': role,
             })
 
-        # ── Success — log in and track IP ──
-        cache.delete(cache_key)  # Reset attempts on success
-        user.last_login_ip = ip
-        user.save(update_fields=['last_login_ip'])
-        login(request, user)
-        return redirect('dashboard')
+        # ── Credentials OK — Start Phase 2 (OTP) ──
+        cache.delete(cache_key)
+        
+        # Store pending user in session
+        request.session['pending_user_id'] = str(user.id)
+        request.session['pending_user_role'] = role
+        
+        # Send OTP
+        create_and_send_otp(user, 'login')
+        
+        return redirect('verify-otp')
+
+
+class VerifyOTPView(View):
+    def get(self, request):
+        if 'pending_user_id' not in request.session:
+            return redirect('login')
+        
+        user = get_object_or_404(User, id=request.session['pending_user_id'])
+        form = VerifyOTPForm()
+        return render(request, 'verify_otp.html', {'form': form, 'user_email': user.email})
+
+    def post(self, request):
+        if 'pending_user_id' not in request.session:
+            return redirect('login')
+        
+        user = get_object_or_404(User, id=request.session['pending_user_id'])
+        role = request.session.get('pending_user_role')
+        form = VerifyOTPForm(request.POST)
+
+        if form.is_valid():
+            otp_code = form.cleaned_data['otp']
+            if verify_otp(user, otp_code, 'login'):
+                # Success
+                user.last_login_ip = get_client_ip(request)
+                user.save(update_fields=['last_login_ip'])
+                
+                # Clean session
+                del request.session['pending_user_id']
+                if 'pending_user_role' in request.session:
+                    del request.session['pending_user_role']
+                
+                login(request, user)
+                return redirect('dashboard')
+            else:
+                form.add_error('otp', 'Invalid or expired OTP code.')
+        
+        return render(request, 'verify_otp.html', {'form': form, 'user_email': user.email})
 
 
 class LogoutView(View):

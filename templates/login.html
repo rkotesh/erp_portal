@@ -33,7 +33,7 @@
 
         .role-card {
             background: rgba(255, 255, 255, 0.6);
-            border: 2px solid rgba(128, 0, 0, 0.15);
+            border: 2px solid #FDF9D4;
             border-radius: 12px;
             padding: 12px 6px;
             text-align: center;
@@ -64,29 +64,29 @@
         }
 
         .role-card:hover {
-            background: rgba(128, 0, 0, 0.08);
-            border-color: rgba(128, 0, 0, 0.4);
+            background: rgba(253, 249, 212, 0.4);
+            border-color: #FDF9D4;
             transform: translateY(-2px);
         }
 
         .role-card:hover i {
-            color: #800000;
+            color: #4a4a4a;
         }
 
         .role-card:hover span {
-            color: #800000;
+            color: #4a4a4a;
         }
 
         .role-card.active {
-            background: #800000;
-            border-color: #800000;
-            box-shadow: 0 4px 15px rgba(128, 0, 0, 0.35);
+            background: #FDF9D4;
+            border-color: #f8f1b0;
+            box-shadow: 0 4px 15px rgba(253, 249, 212, 0.35);
             transform: translateY(-2px);
         }
 
         .role-card.active i,
         .role-card.active span {
-            color: #fff !important;
+            color: #4a4a4a !important;
         }
 
         @media (max-width: 576px) {
@@ -127,10 +127,15 @@
     <div id="vanta-bg"></div>
 
     <div class="auth-card glass-panel" data-aos="zoom-in" style="max-width: 550px;">
+        <a href="/"
+            class="text-decoration-none text-muted smaller d-inline-flex align-items-center mb-4 transition-all hover-opacity"
+            style="font-weight: 600;">
+            <i class="bi bi-arrow-left me-2"></i> Back to Home
+        </a>
         <div class="auth-header text-center">
             <img src="{% static 'images/ciet_logo.svg' %}" class="auth-logo mx-auto mb-3"
                 style="height: 100px; width: auto;">
-            <h3 class="fw-bold text-maroon mb-1">CIET PORTAL</h3>
+            <h3 class="fw-bold text-dark mb-1">CIET PORTAL</h3>
             <p class="text-muted smaller">Select your gateway to proceed</p>
         </div>
 
@@ -207,6 +212,9 @@
                         <i class="bi bi-eye" id="eyeIcon"></i>
                     </button>
                 </div>
+                <p class="smaller text-muted mt-2 mb-0 ms-1" id="passwordRuleHint">
+                    Student password: College Roll No
+                </p>
             </div>
 
             <button type="submit" class="btn-ciet btn-ciet-primary w-100 justify-content-center py-3">
@@ -234,10 +242,10 @@
             mouseControls: true,
             touchControls: true,
             gyroControls: false,
-            highlightColor: 0x800000,
-            midtoneColor: 0x2a5c8e,
+            highlightColor: 0xfdf9d4,
+            midtoneColor: 0xfdf9d4,
             lowlightColor: 0xffffff,
-            baseColor: 0xf8f9fa,
+            baseColor: 0xffffff,
             blurFactor: 0.8,
             speed: 0.5
         });
@@ -246,17 +254,28 @@
             var label = document.getElementById('idLabel');
             var input = document.getElementById('identifierInput');
             var icon = document.getElementById('idIcon');
+            var pwd = document.getElementById('password');
+            var hint = document.getElementById('passwordRuleHint');
 
             if (role === 'Student' || role === 'Parent') {
                 label.textContent = 'Roll Number';
                 input.placeholder = 'e.g. 22B01A0501';
                 input.type = 'text';
                 icon.className = 'bi bi-person-vcard position-absolute translate-middle-y top-50 ms-3 text-muted';
+                if (role === 'Student') {
+                    pwd.placeholder = 'Use your College Roll No';
+                    hint.textContent = 'Student password: College Roll No';
+                } else {
+                    pwd.placeholder = 'Use your registered email address';
+                    hint.textContent = 'Parent password: Registered email address';
+                }
             } else {
                 label.textContent = 'Email Address';
                 input.placeholder = 'name@ciet.edu.in';
                 input.type = 'email';
                 icon.className = 'bi bi-envelope position-absolute translate-middle-y top-50 ms-3 text-muted';
+                pwd.placeholder = 'Use your registered email address';
+                hint.textContent = role + ' password: Registered email address';
             }
         }
 

@@ -18,7 +18,9 @@ ui_urlpatterns = [
     path('portal/courses/',       views.StudentCoursesView.as_view(),       name='student-courses'),
     path('portal/research/',      views.StudentResearchView.as_view(),      name='student-research'),
     path('portal/education/',     views.StudentEducationView.as_view(),     name='student-education'),
+    path('portal/contact-otp/',   views.StudentContactOtpView.as_view(),    name='student-contact-otp'),
     path('portal/toggle-public/', views.TogglePublicProfileView.as_view(),  name='student-toggle-public'),
+    path('verification/queue/',   views.StudentVerificationQueueView.as_view(), name='student-verification-queue'),
     path('detail/<uuid:pk>/',     views.StudentManagementDetailView.as_view(), name='student-detail'),
     path('p/<slug:slug>/',        views.PublicStudentProfileView.as_view(), name='student-public-profile'),
 ]

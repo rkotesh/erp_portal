@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Exam Cell Verification Queue{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">Exam Cell Verification Queue</h3>
+            <p class="text-muted mb-0">Approve or reject student-submitted education, certifications, and semester scores.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Education Pending</h5>
+                    {% for e in pending_education %}
+                    <div class="border rounded p-3 mb-2">
+                        <div class="fw-bold">{{ e.student.roll_no }} - {{ e.get_edu_type_display }}</div>
+                        <div class="small text-muted mb-2">{{ e.institution }} | {{ e.score }} {{ e.score_type }}</div>
+                        <form method="post" class="d-flex gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_type" value="education">
+                            <input type="hidden" name="item_id" value="{{ e.id }}">
+                            <button class="btn btn-sm btn-success" name="decision" value="approve">Approve</button>
+                            <button class="btn btn-sm btn-outline-danger" name="decision" value="reject">Reject</button>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small mb-0">No pending education records.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Certifications Pending</h5>
+                    {% for c in pending_certs %}
+                    <div class="border rounded p-3 mb-2">
+                        <div class="fw-bold">{{ c.student.roll_no }} - {{ c.title }}</div>
+                        <div class="small text-muted mb-2">{{ c.issuer }} | {{ c.issued_date }}</div>
+                        <form method="post" class="d-flex gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_type" value="certification">
+                            <input type="hidden" name="item_id" value="{{ c.id }}">
+                            <button class="btn btn-sm btn-success" name="decision" value="approve">Approve</button>
+                            <button class="btn btn-sm btn-outline-danger" name="decision" value="reject">Reject</button>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small mb-0">No pending certifications.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Semester Scores Pending</h5>
+                    {% for r in pending_results %}
+                    <div class="border rounded p-3 mb-2">
+                        <div class="fw-bold">{{ r.student.roll_no }} - Sem {{ r.semester }}</div>
+                        <div class="small text-muted mb-2">{{ r.subject_name }} | {{ r.score }}/{{ r.max_score }}</div>
+                        <form method="post" class="d-flex gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_type" value="semester_result">
+                            <input type="hidden" name="item_id" value="{{ r.id }}">
+                            <button class="btn btn-sm btn-success" name="decision" value="approve">Approve</button>
+                            <button class="btn btn-sm btn-outline-danger" name="decision" value="reject">Reject</button>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small mb-0">No pending semester scores.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,238 +1,122 @@
-﻿{% extends 'base.html' %}
+{% extends 'student_portal/base_portal.html' %}
 {% load static %}
 
-{% block title %}{{ profile.user.full_name }} | Student Profile{% endblock %}
+{% block portal_title %}Dashboard{% endblock %}
 
-{% block content %}
-<div class="container-fluid p-0">
-    <!-- PROFILE HEADER CARD -->
-    <div class="card-linkedin overflow-hidden mb-3">
-        <div class="profile-banner">
-            <button class="btn btn-light btn-sm position-absolute top-0 end-0 m-3 rounded-circle"
-                style="width: 32px; height: 32px; padding: 0;">
-                <i class="bi bi-camera-fill"></i>
-            </button>
+{% block portal_content %}
+<div class="space-y-8 portal-fade-in">
+  <section class="bg-[#1C1C1C] rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl shadow-maroon/20">
+    <div class="relative z-10">
+      <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase mb-4">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        Student Portal
+      </div>
+      <h2 class="text-4xl lg:text-5xl font-bold tracking-tight">Welcome back, {{ profile.user.full_name }}!</h2>
+      
+    </div>
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-white/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+  </section>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center">
+          <i data-lucide="layers" class="w-6 h-6"></i>
         </div>
-        <div class="profile-info-section">
-            <div class="profile-avatar-container">
-                {% if profile.photo %}
-                <img src="{{ profile.photo.url }}" class="profile-avatar">
-                {% else %}
-                <div class="profile-avatar d-flex align-items-center justify-content-center bg-light">
-                    <i class="bi bi-person-fill display-4 text-muted"></i>
-                </div>
-                {% endif %}
-                <button class="btn btn-light btn-sm position-absolute bottom-0 end-0 mb-2 me-1 border rounded-circle"
-                    style="width: 30px; height: 30px; padding: 0;">
-                    <i class="bi bi-pencil-fill smaller"></i>
-                </button>
-            </div>
-
-            <div class="row align-items-start">
-                <div class="col-md-9 profile-details">
-                    <h1 class="profile-name">{{ profile.user.full_name }} <span
-                            class="text-muted fw-normal smaller">(He/Him)</span></h1>
-                    <p class="profile-headline">{{ profile.department.name }} Student at CIET | Batch {{ profile.batch
-                        }}</p>
-                    <p class="profile-meta mb-3">
-                        {{ profile.department.code }} • {{ profile.roll_no }} •
-                        <a href="mailto:{{ profile.user.email }}"
-                            class="text-primary text-decoration-none fw-bold">Contact info</a>
-                    </p>
-
-                    <div class="d-flex flex-wrap gap-2 mb-3">
-                        <a href="{% if profile.is_public %}/student/p/{{ profile.slug }}/{% else %}#{% endif %}"
-                            class="btn-li btn-li-primary text-decoration-none {% if not profile.is_public %}disabled opacity-50{% endif %}"
-                            {% if profile.is_public %}target="_blank" {% endif %}>
-                            <i class="bi bi-eye-fill me-1"></i> View Public Profile
-                        </a>
-                        <a href="{% url 'student-profile-edit' %}" class="btn-li btn-li-outline text-decoration-none">
-                            <i class="bi bi-pencil-square me-1"></i> Edit Profile
-                        </a>
-                        <button class="btn btn-outline-secondary rounded-pill px-3 py-1 smaller"
-                            onclick="window.print()">
-                            <i class="bi bi-printer-fill me-1"></i> Print
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-3 mt-md-5 pt-md-2 no-print">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="bi bi-mortarboard-fill text-primary fs-5"></i>
-                        <span class="smaller fw-bold">Chalapathi Institute of Engineering and Technology</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <span class="text-[11px] font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full uppercase tracking-wider">Portfolio</span>
+      </div>
+      <h3 class="text-3xl font-bold text-slate-900 mb-1">{{ profile.projects.count }}</h3>
+      <p class="text-xs font-semibold text-slate-500">Projects Added</p>
     </div>
 
-    <!-- ACADEMIC SNAPSHOT SECTION -->
-    <div class="card-linkedin p-4 mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">Academic Snapshot</h5>
-            <span class="text-muted smaller"><i class="bi bi-shield-lock-fill"></i> Private Dashboard</span>
+    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+          <i data-lucide="award" class="w-6 h-6"></i>
         </div>
-        <div class="row g-4 text-center">
-            <div class="col-md-3 border-end">
-                <div class="fw-bold fs-4 text-maroon">{{ profile.batch }}</div>
-                <div class="smaller text-muted">Academic Batch</div>
-                <div class="smaller text-success">Current Session</div>
-            </div>
-            <div class="col-md-3 border-end">
-                <div class="fw-bold fs-4 text-primary">{{ profile.cgpa|default:"0.00" }}</div>
-                <div class="smaller text-muted">Current CGPA</div>
-                <div class="smaller text-muted">Latest Update</div>
-            </div>
-            <div class="col-md-3 border-end">
-                <div class="fw-bold fs-4">{{ subject_stats|length }}</div>
-                <div class="smaller text-muted">Registered Subjects</div>
-                <div class="smaller text-muted">Current Semester</div>
-            </div>
-            <div class="col-md-3">
-                <div class="fw-bold fs-4">{{ profile.projects.count }}</div>
-                <div class="smaller text-muted">Active Projects</div>
-                <div class="smaller text-primary">+ {{ profile.certifications.count }} Certificates</div>
-            </div>
-        </div>
+        <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-wider">Certifications</span>
+      </div>
+      <h3 class="text-3xl font-bold text-slate-900 mb-1">{{ profile.certifications.count }}</h3>
+      <p class="text-xs font-semibold text-slate-500">Credentials Added</p>
     </div>
 
-    <!-- EXTERNAL LINKS CARD -->
-    <div class="card-linkedin p-4 mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">Professional Links</h5>
-            <a href="{% url 'student-profile-edit' %}" class="btn btn-light btn-sm rounded-circle"><i
-                    class="bi bi-pencil-fill"></i></a>
+    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-12 h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center">
+          <i data-lucide="trending-up" class="w-6 h-6"></i>
         </div>
-        <div class="d-flex flex-wrap gap-4">
-            {% if profile.linkedin_url %}
-            <a href="{{ profile.linkedin_url }}" target="_blank" class="nav-item text-primary">
-                <i class="bi bi-linkedin fs-4"></i>
-                <span>LinkedIn</span>
-            </a>
-            {% endif %}
-            {% if profile.github_url %}
-            <a href="{{ profile.github_url }}" target="_blank" class="nav-item text-dark">
-                <i class="bi bi-github fs-4"></i>
-                <span>GitHub</span>
-            </a>
-            {% endif %}
-            {% if profile.leetcode_url %}
-            <a href="{{ profile.leetcode_url }}" target="_blank" class="nav-item text-warning">
-                <i class="bi bi-code-square fs-4"></i>
-                <span>LeetCode</span>
-            </a>
-            {% endif %}
-            {% if profile.hackerrank_url %}
-            <a href="{{ profile.hackerrank_url }}" target="_blank" class="nav-item text-success">
-                <i class="bi bi-cpu fs-4"></i>
-                <span>HackerRank</span>
-            </a>
-            {% endif %}
-        </div>
+        <span class="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-wider">Academic</span>
+      </div>
+      <h3 class="text-3xl font-bold text-slate-900 mb-1">{{ profile.cgpa|default:"0.0" }}</h3>
+      <p class="text-xs font-semibold text-slate-500">Overall CGPA</p>
     </div>
+  </div>
 
-    <!-- PERFORMANCE CHARTS (REPORT SECTION) -->
-    <div class="row mb-3">
-        <div class="col-md-12">
-            <div class="card-linkedin p-4">
-                <h5 class="fw-bold mb-4">SGPA Trends (Semester wise)</h5>
-                <canvas id="cgpaChart" height="200"></canvas>
-            </div>
-        </div>
+  <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+    <div class="p-8 border-b border-slate-100">
+      <h4 class="text-xl font-bold text-slate-900">Professional Activity Feed</h4>
+      <p class="text-sm font-semibold text-slate-500">Recent certifications, project posts, and resume updates.</p>
     </div>
-
-    <!-- ABOUT SECTION -->
-    <div class="card-linkedin p-4 mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="fw-bold mb-0">About</h5>
-            <button class="btn btn-light btn-sm rounded-circle"><i class="bi bi-pencil-fill"></i></button>
+    <div class="p-8 space-y-6">
+      {% for post in activity_posts %}
+      <article class="border border-slate-100 rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400">{{ post.kind }}</p>
+            <h5 class="text-lg font-bold text-slate-900 mb-0">{{ post.title }}</h5>
+            <p class="text-sm text-slate-500">{{ post.subtitle }}</p>
+          </div>
+          <span class="text-xs text-slate-400 font-semibold">{{ post.created_at|date:"d M Y" }}</span>
         </div>
-        <p class="mb-0">Aspiring engineer with a passion for software development and data analytics. Currently pursuing
-            B.Tech in {{ profile.department.name }} at CIET. Active member of technical clubs and passionate about
-            competitive programming.</p>
+        {% if post.preview_image %}
+        <img src="{{ post.preview_image }}" alt="{{ post.title }}" class="w-full max-h-[360px] object-cover rounded-2xl border border-slate-100 mb-4">
+        {% elif post.kind == 'Resume' %}
+        <div class="w-full h-40 rounded-2xl border border-slate-100 bg-slate-50 flex items-center justify-center text-slate-400 font-bold mb-4">Resume Document</div>
+        {% endif %}
+        <div class="flex items-center gap-3">
+          {% if post.file_url %}
+          <a href="{{ post.file_url }}" target="_blank" class="text-xs font-bold no-underline px-4 py-2 rounded-xl bg-slate-900 text-white">Open File</a>
+          {% endif %}
+          {% if post.external_url %}
+          <a href="{{ post.external_url }}" target="_blank" class="text-xs font-bold no-underline px-4 py-2 rounded-xl bg-slate-100 text-slate-700">Open Link</a>
+          {% endif %}
+          {% if post.verified %}
+          <span class="text-[10px] font-bold uppercase px-3 py-1 rounded-full bg-emerald-50 text-emerald-700">Verified</span>
+          {% endif %}
+        </div>
+      </article>
+      {% empty %}
+      <div class="text-sm text-slate-500">No activity yet. Add certifications, project cover images, and resume to build your feed.</div>
+      {% endfor %}
     </div>
+  </div>
 
-    <!-- EDUCATION SECTION -->
-    <div class="card-linkedin p-4 mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">Education</h5>
-            <div class="d-flex gap-2">
-                <a href="{% url 'student-education' %}" class="btn btn-light btn-sm rounded-circle"><i
-                        class="bi bi-plus-lg"></i></a>
-                <button class="btn btn-light btn-sm rounded-circle"><i class="bi bi-pencil-fill"></i></button>
-            </div>
-        </div>
-        {% for edu in profile.education.all %}
-        <div class="d-flex gap-3 mb-4 last-child-mb-0">
-            <i class="bi bi-bank fs-3 text-muted"></i>
-            <div>
-                <h6 class="fw-bold mb-0">{{ edu.institution }}</h6>
-                <div class="smaller">{{ edu.get_edu_type_display }} • {{ edu.board_university }}</div>
-                <div class="text-muted smaller">{{ edu.year_of_passing }}</div>
-                <div class="mt-1 fw-semibold text-primary">Score: {{ edu.score }}{{ edu.get_score_type_display }}</div>
-                {% if edu.is_verified %}
-                <span class="badge bg-success-subtle text-success smaller mt-1"><i class="bi bi-patch-check-fill"></i>
-                    Verified by Exam Cell</span>
-                {% endif %}
-            </div>
-        </div>
-        {% empty %}
-        <p class="text-muted">No education history added.</p>
-        {% endfor %}
+  <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+    <div class="p-8 border-b border-slate-100 flex items-center justify-between">
+      <h4 class="text-xl font-bold text-slate-900">Semester Marks (Published by Exam Cell/Faculty)</h4>
+      <a href="{% url 'student-academics' %}" class="text-sm font-bold text-[#000000] no-underline">View Transcript</a>
     </div>
-
-    <!-- PROJECTS SECTION -->
-    <div class="card-linkedin p-4 mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">Projects</h5>
-            <div class="d-flex gap-2">
-                <a href="{% url 'student-projects' %}" class="btn btn-light btn-sm rounded-circle"><i
-                        class="bi bi-plus-lg"></i></a>
-            </div>
-        </div>
-        {% for project in profile.projects.all %}
-        <div class="mb-4">
-            <h6 class="fw-bold mb-1">{{ project.title }}</h6>
-            <div class="text-muted smaller mb-2">Tech Stack: {{ project.tech_stack }}</div>
-            <p class="smaller mb-2">{{ project.description|truncatewords:30 }}</p>
-            {% if project.repo_url %}
-            <a href="{{ project.repo_url }}" target="_blank"
-                class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1 smaller">View Project</a>
-            {% endif %}
-            {% if project.is_verified %}
-            <span class="badge bg-primary-subtle text-primary smaller ms-2">College Supervised</span>
-            {% endif %}
-        </div>
-        <hr class="opacity-25">
-        {% empty %}
-        <p class="text-muted">No projects listed.</p>
-        {% endfor %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-slate-50">
+          <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+            <th class="px-8 py-5">Course Module</th>
+            <th class="px-8 py-5 text-center">Marks (Internal/External)</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for sid, stat in subject_stats.items %}
+          <tr>
+            <td class="px-8 py-6">
+              <p class="font-bold text-slate-900 mb-0.5">{{ stat.subject_name }}</p>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ stat.subject_code }}</p>
+            </td>
+            <td class="px-8 py-6 text-center text-sm font-bold text-slate-900">{{ stat.internal }} / {{ stat.external }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-
+  </div>
 </div>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // CGPA/Rank Chart
-    const cgpaCtx = document.getElementById('cgpaChart').getContext('2d');
-    new Chart(cgpaCtx, {
-        type: 'line',
-        data: {
-            labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
-            data: [7.8, 8.2, 8.5, {% if profile.cgpa %}{{ profile.cgpa }}{% else %}0{% endif %}], // NO_DEFAULT_FILTER
-        borderColor: '#0a66c2',
-        tension: 0.4,
-        fill: true,
-        backgroundColor: 'rgba(10, 102, 194, 0.1)'
-        }]
-    },
-        options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { y: { min: 0, max: 10 } }
-    }
-    });
-</script>
 {% endblock %}

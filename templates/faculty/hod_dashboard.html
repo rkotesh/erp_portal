@@ -109,23 +109,142 @@
     </div>
 </div>
 
+<div class="row g-4 mb-4">
+    <!-- SYLLABUS STATUS -->
+    <div class="col-lg-12">
+        <div class="card-linkedin p-4">
+            <h5 class="fw-bold mb-4">Academic Progress & Syllabus Audit</h5>
+            <div class="row g-4">
+                {% for item in syllabus_summary %}
+                <div class="col-md-4">
+                    <div class="p-3 border rounded-li hover-shadow transition-all">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="smaller fw-bold text-dark">{{ item.subject__name }}</span>
+                            <span class="smaller text-muted">{{ item.covered }}/{{ item.total }} Units</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                style="width: {% widthratio item.covered item.total 100 %}%"></div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-4 text-muted border border-dashed rounded-3">
+                    No syllabus data available for current session.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- RECENT LOGS -->
+    <div class="col-lg-12">
+        <div class="card-linkedin p-4">
+            <h5 class="fw-bold mb-4">Recent Department Logs</h5>
+            <div class="table-responsive">
+                <table class="table table-hover smaller align-middle">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Resource</th>
+                            <th>By</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lp in lesson_plans|slice:":3" %}
+                        <tr>
+                            <td><span class="badge bg-info-subtle text-info border-info/20">Lesson Plan Upload</span>
+                            </td>
+                            <td>{{ lp.subject.name }}</td>
+                            <td>{{ lp.uploaded_by.full_name }}</td>
+                            <td>{{ lp.created_at|date:"d M, H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% for tt in timetables|slice:":2" %}
+                        <tr>
+                            <td><span class="badge bg-warning-subtle text-warning border-warning/20">Timetable
+                                    Active</span></td>
+                            <td>Sem {{ tt.semester }}</td>
+                            <td>{{ tt.uploaded_by.full_name }}</td>
+                            <td>{{ tt.created_at|date:"d M, H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- FACULTY MANAGEMENT -->
+    <div class="col-lg-12">
+        <div class="card-linkedin p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Department Faculty & Resource Load</h5>
+                <a href="#" class="btn btn-sm btn-outline-primary">View Full Directory</a>
+            </div>
+            <div class="row g-3">
+                {% for f in faculty_list %}
+                <div class="col-md-3">
+                    <div class="p-3 bg-light rounded-li d-flex align-items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-circle bg-maroon-subtle flex items-center justify-center text-maroon fw-bold">
+                            {{ f.full_name|first }}
+                        </div>
+                        <div>
+                            <div class="fw-bold smaller">{{ f.full_name }}</div>
+                            <div class="text-muted" style="font-size: 10px;">{{ f.email }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-3 text-muted">No faculty records found for this department.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Upload Modal -->
 <div class="modal fade" id="uploadModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header border-bottom-0">
-                <h5 class="modal-title fw-bold">Upload Academic Data</h5>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-panel border-0 shadow-2xl overflow-hidden">
+            <div class="modal-header bg-maroon-subtle border-0 p-4">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-maroon rounded-xl flex items-center justify-center text-white shadow-lg shadow-maroon/20">
+                        <i class="bi bi-cloud-upload" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-maroon mb-0">Academic Repository</h5>
+                        <p class="text-slate-500 smaller mb-0">Publish official department documents</p>
+                    </div>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body pt-0">
-                <ul class="nav nav-pills nav-fill mb-3" role="tablist">
+            <div class="modal-body p-4">
+                <ul class="nav nav-pills nav-fill mb-4 bg-slate-50 p-1 rounded-2xl" role="tablist">
                     <li class="nav-item">
-                        <button class="nav-link active smaller fw-bold" data-bs-toggle="pill"
-                            data-bs-target="#lessonPlanTab">Lesson Plan</button>
+                        <button class="nav-link active smaller fw-bold py-2.5 rounded-xl transition-all"
+                            data-bs-toggle="pill" data-bs-target="#lessonPlanTab">
+                            <i class="bi bi-journal-text me-2"></i> Lesson Plan
+                        </button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link smaller fw-bold" data-bs-toggle="pill"
-                            data-bs-target="#timetableTab">Timetable</button>
+                        <button class="nav-link smaller fw-bold py-2.5 rounded-xl transition-all" data-bs-toggle="pill"
+                            data-bs-target="#timetableTab">
+                            <i class="bi bi-calendar3 me-2"></i> Timetable
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link smaller fw-bold py-2.5 rounded-xl transition-all" data-bs-toggle="pill"
+                            data-bs-target="#calendarTab">
+                            <i class="bi bi-calendar-check me-2"></i> Calendar
+                        </button>
                     </li>
                 </ul>
                 <div class="tab-content">
@@ -133,23 +252,132 @@
                         <form method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="upload_lesson_plan">
-                            <div class="mb-3">
-                                <label class="smaller fw-bold mb-1">Subject</label>
-                                <select name="subject_id" class="form-select smaller" required>
-                                    <!-- Populated from context -->
+                            <div class="mb-4">
+                                <label
+                                    class="smaller fw-bold text-slate-500 uppercase tracking-widest mb-2 block">Select
+                                    Subject</label>
+                                <select name="subject_id"
+                                    class="form-select rounded-xl border-slate-200 p-2.5 smaller shadow-sm focus:border-maroon focus:ring-maroon/20"
+                                    required>
+                                    <option value="">-- Choose Course --</option>
+                                    {% for sub in subjects %}
+                                    <option value="{{ sub.id }}">{{ sub.name }} ({{ sub.code }})</option>
+                                    {% endfor %}
                                 </select>
                             </div>
-                            <div class="mb-3">
-                                <label class="smaller fw-bold mb-1">File</label>
-                                <input type="file" name="file" class="form-control smaller" required>
+                            <div class="mb-4">
+                                <label
+                                    class="smaller fw-bold text-slate-500 uppercase tracking-widest mb-2 block">Lesson
+                                    Plan (PDF)</label>
+                                <div
+                                    class="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center hover:border-maroon/50 transition-colors group relative">
+                                    <input type="file" name="file" class="absolute inset-0 opacity-0 cursor-pointer"
+                                        id="lpFile" required>
+                                    <i
+                                        class="bi bi-file-earmark-pdf text-3xl text-slate-300 group-hover:text-maroon transition-colors mb-2 block"></i>
+                                    <span class="text-sm font-semibold text-slate-600">Click or Drag to Upload</span>
+                                </div>
                             </div>
-                            <button type="submit" class="btn btn-li btn-li-primary w-100 py-2">Publish Plan</button>
+                            <button type="submit"
+                                class="btn-ciet btn-ciet-primary w-100 py-3 shadow-lg hover:shadow-maroon/20">
+                                <i class="bi bi-rocket-takeoff me-2"></i> Publish Lesson Plan
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="tab-pane fade" id="timetableTab">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="upload_timetable">
+                            <div class="row g-3 mb-4">
+                                <div class="col-6">
+                                    <label
+                                        class="smaller fw-bold text-slate-500 uppercase tracking-widest mb-2 block">Semester</label>
+                                    <select name="semester"
+                                        class="form-select rounded-xl border-slate-200 p-2.5 smaller shadow-sm"
+                                        required>
+                                        {% for i in "12345678" %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label
+                                        class="smaller fw-bold text-slate-500 uppercase tracking-widest mb-2 block">Valid
+                                        From</label>
+                                    <input type="date" name="valid_from"
+                                        class="form-control rounded-xl border-slate-200 p-2.5 smaller shadow-sm"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label
+                                    class="smaller fw-bold text-slate-500 uppercase tracking-widest mb-2 block">Timetable
+                                    Image/PDF</label>
+                                <div
+                                    class="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center hover:border-maroon/50 transition-colors group relative">
+                                    <input type="file" name="file" class="absolute inset-0 opacity-0 cursor-pointer"
+                                        required>
+                                    <i
+                                        class="bi bi-calendar-event text-3xl text-slate-300 group-hover:text-maroon transition-colors mb-2 block"></i>
+                                    <span class="text-sm font-semibold text-slate-600">Click or Drag to Upload</span>
+                                </div>
+                            </div>
+                            <button type="submit"
+                                class="btn-ciet btn-ciet-primary w-100 py-3 shadow-lg hover:shadow-maroon/20">
+                                <i class="bi bi-check2-circle me-2"></i> Set Active Timetable
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="tab-pane fade" id="calendarTab">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="upload_calendar">
+                            <div class="mb-4">
+                                <label
+                                    class="smaller fw-bold text-slate-500 uppercase tracking-widest mb-2 block">Calendar
+                                    Title</label>
+                                <input type="text" name="title"
+                                    class="form-control rounded-xl border-slate-200 p-2.5 smaller shadow-sm"
+                                    placeholder="e.g. ODD Semester 2026-27" required>
+                            </div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-12">
+                                    <label
+                                        class="smaller fw-bold text-slate-500 uppercase tracking-widest mb-2 block">Semester
+                                        Scope</label>
+                                    <select name="semester"
+                                        class="form-select rounded-xl border-slate-200 p-2.5 smaller shadow-sm"
+                                        required>
+                                        <option value="Odd">Odd Semester</option>
+                                        <option value="Even">Even Semester</option>
+                                        <option value="Annual">Full Year</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label
+                                    class="smaller fw-bold text-slate-500 uppercase tracking-widest mb-2 block">Calendar
+                                    File</label>
+                                <div
+                                    class="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center hover:border-maroon/50 transition-colors group relative">
+                                    <input type="file" name="file" class="absolute inset-0 opacity-0 cursor-pointer"
+                                        required>
+                                    <i
+                                        class="bi bi-calendar-check text-3xl text-slate-300 group-hover:text-maroon transition-colors mb-2 block"></i>
+                                    <span class="text-sm font-semibold text-slate-600">Click or Drag to Upload</span>
+                                </div>
+                            </div>
+                            <button type="submit"
+                                class="btn-ciet btn-ciet-primary w-100 py-3 shadow-lg hover:shadow-maroon/20">
+                                <i class="bi bi-broadcast me-2"></i> Update Global Calendar
+                            </button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 </div>
 
 {% endblock %}

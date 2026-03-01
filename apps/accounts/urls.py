@@ -4,6 +4,7 @@ from apps.accounts import views
 
 urlpatterns = [
     path('login/', views.LoginView.as_view(), name='login'),
+    path('verify-otp/', views.VerifyOTPView.as_view(), name='verify-otp'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
 
     # Password Reset
