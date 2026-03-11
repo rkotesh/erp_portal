@@ -68,6 +68,10 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = False  # Keep False to allow HTMX/JS integration if needed
 SESSION_COOKIE_HTTPONLY = True
+<<<<<<< HEAD
+=======
+CSRF_USE_SESSIONS = True
+>>>>>>> bc40f1fa (update the latest changes)
 
 # Ensure APPEND_SLASH is active (Django default is True)
 APPEND_SLASH = True

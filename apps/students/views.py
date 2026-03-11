@@ -164,10 +164,19 @@ class StudentPortalView(LoginRequiredMixin, View):
             })
         activity_posts = sorted(activity_posts, key=lambda x: x['created_at'], reverse=True)[:12]
 
+<<<<<<< HEAD
+=======
+        cohorts = profile.cohorts.filter(is_active=True).select_related('department', 'created_by')
+
+>>>>>>> bc40f1fa (update the latest changes)
         return render(request, 'student_portal/dashboard.html', {
             'profile': profile,
             'subject_stats': subject_stats,
             'activity_posts': activity_posts,
+<<<<<<< HEAD
+=======
+            'cohorts': cohorts,
+>>>>>>> bc40f1fa (update the latest changes)
         })
 
 
